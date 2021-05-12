@@ -12,7 +12,7 @@ const feedSchema = new Schema({
       ref: 'Item'
     }
   ]
-});
+}, { timestamps: true });
 
 const Feed = model("Feed", feedSchema);
 
