@@ -11,6 +11,18 @@ const userSchema = new Schema({
       type: Schema.Types.ObjectId,
       ref: 'Feed'
     }
+  ],
+  read: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Feed'
+    }
+  ],
+  starred: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Feed'
+    }
   ]
 });
 
