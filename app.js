@@ -58,9 +58,9 @@ passport.use(
     User.findOne({ username: username })
       .then(userFromDB => {
         if (userFromDB === null) {
-          done(null, false, { message: 'Username does not exist' });
+          done(null, false, { usernameError: 'Username does not exist' });
         } else if (!bcrypt.compareSync(password, userFromDB.password)) {
-          done(null, false, { message: 'Wrong password' });
+          done(null, false, { passwordError: 'Wrong password' });
         } else {
           done(null, userFromDB);
         }

@@ -1,24 +1,48 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import '@fontsource/roboto';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import { Route, Redirect } from 'react-router-dom';
+import SignIn from './components/SignIn';
+import SignUp from './components/SignUp';
+import Reader from './components/Reader';
 
-function App() {
+function App(props) {
+  const [user, setUser] = useState(props.user);
+
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+
+  const theme = React.useMemo(
+    () =>
+      createMuiTheme({
+        palette: {
+          type: prefersDarkMode ? 'dark' : 'light',
+        },
+      }),
+    [prefersDarkMode],
+  );
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline/>
+      <Route
+        exact path='/'
+        render={props => {
+          if (user) {
+            return <Reader {...props} />
+          } else return <Redirect to='/signin' />
+        }}
+      />
+      <Route
+        exact path="/signin"
+        render={props => <SignIn setUser={setUser} {...props} />}
+      />
+      <Route
+        exact path="/signup"
+        render={props => <SignUp setUser={setUser} {...props} />}
+      />
+    </ThemeProvider>
   );
 }
 

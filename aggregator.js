@@ -81,18 +81,20 @@ const aggregateFeeds = (interval) => {
 
 const fetchFeeds = async () => {
   try {
+    console.log('Updating feeds:')
     const feeds = await Feed.find();
     for (let feed of feeds) {
-      await console.log('updating', feed.title);
+      let count = 0;
       const parsedFeed = await parser.parseURL(feed.feedUrl)
       for (let item of parsedFeed.items) {
         const existingItem = await Item.findOne({ title: item.title, link: item.link, isoDate: item.isoDate, feed: feed._id });
         if (!existingItem) {
           const newItem = await Item.create({ ...item, feed: feed._id });
-          const updatedFeed = await Feed.findByIdAndUpdate(feed._id, { $push: { feedItems: { $each: [newItem._id], $position: 0 } } }, { new: true });
-          await console.log(newItem.title, 'added to', updatedFeed.title)
+          await Feed.findByIdAndUpdate(feed._id, { $push: { feedItems: { $each: [newItem._id], $position: 0 } } }, { new: true });
+          count++;
         }
       }
+      console.log(feed.title, count, 'new items');
     }
   } catch (err) {
     console.log(err);

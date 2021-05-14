@@ -70,74 +70,45 @@ router.get('/:id', (req, res) => {
   Feed.findById(req.params.id)
     .then(feed => {
       if (!feed) {
-        res.status(404).json(feed);
+        res.status(404).json({ message: 'Feed not found' });
       } else {
-        // parser.parseURL(feed.url)
-        //   .then(parsedFeed => {
-        //     console.log(feed.updatedAt);
-        //     const newItems = parsedFeed.items.filter(item => new Date(item.isoDate) > feed.updatedAt);
-        //     console.log(newItems);
-        //     Item.insertMany(newItems.map(item => ({...item, feed: feed._id})))
-        //       .then(insertedItems => {
-        //         const itemIds = insertedItems.map(item => item._id);
-        //         Feed.findByIdAndUpdate(feed._id, { $push: { items: { $each: itemIds, $position: 0 } } }, { new: true })
-        //           .populate('items')
-        //           .then(updatedFeed => {
-        //             res.status(200).json(updatedFeed);
-        //           })
-        //           .catch(err => {
-        //             res.json(err);
-        //           })
-        //       })
-        //       .catch(err => {
-        //         res.json(err);
-        //       })
-        //   })
-        //   .catch(err => {
-        //     res.json(err);
-        //   })
+        updateFeed(feed._id)
+          .then(updatedFeed => {
+            res.status(200).json(updatedFeed)
+          })
+          .catch(err => {
+            res.json(err);
+          })
       }
     })
 });
 
-router.put('/:id', (req, res) => {
-  const { url, title, description, link, category } = req.body;
-  Feed.findByIdAndUpdate(req.params.id, { url, title, description, link, category }, { new: true })
-    .then(updatedFeed => {
-      res.status(200).json(updatedFeed);
-    })
-    .catch(err => {
-      res.json(err);
-    })
-});
+// router.put('/:id', (req, res) => {
+//   const { url, title, description, link, category } = req.body;
+//   Feed.findByIdAndUpdate(req.params.id, { url, title, description, link, category }, { new: true })
+//     .then(updatedFeed => {
+//       res.status(200).json(updatedFeed);
+//     })
+//     .catch(err => {
+//       res.json(err);
+//     })
+// });
 
 router.delete('/:id', (req, res) => {
-  Item.deleteMany({ feed: req.params.id })
+  User.findByIdAndUpdate(req.user._id, { $pull: { feeds: req.params.id } })
     .then(() => {
-      Feed.findByIdAndDelete(req.params.id)
-        .then(() => {
-          User.findByIdAndUpdate(req.user._id, { $pull: { feeds: req.params.id } })
-           .then(() => {
-             res.status(200).json({ message: 'Feed deleted' });
-           })
-           .catch(err => {
-            res.json(err);
-          })
-        })
-        .catch(err => {
-          res.json(err);
-        })
+      res.status(200).json({ message: 'Feed deleted' });
     })
     .catch(err => {
-      res.json(err);
-    })
+    res.json(err);
+  })
 })
 
 router.get('/item/:id', (req, res) => {
   Item.findById(req.params.id)
     .then(item => {
       if (!item) {
-        res.status(404).json(item);
+        res.status(404).json({ message: 'Item not found' });
       } else {
         res.status(200).json(item);
       }
@@ -145,14 +116,42 @@ router.get('/item/:id', (req, res) => {
 });
 
 router.put('/item/:id', (req, res) => {
-  const { read, starred } = req.body;
-  Item.findByIdAndUpdate(req.params.id, { read, starred }, { new: true })
-    .then(item => {
-      res.status(200).json(item);
+  if (req.body.starred) {
+    User.findByIdAndUpdate(req.user._id, { $push: { starred: req.params.id } })
+    .then(user => {
+      res.status(200).json(user.starred);
     })
     .catch(err => {
       res.json(err);
     })
+  }
+  if (!req.body.starred) {
+    User.findByIdAndUpdate(req.user._id, { $pull: { starred: req.params.id } })
+    .then(user => {
+      res.status(200).json(user.starred);
+    })
+    .catch(err => {
+      res.json(err);
+    })
+  }
+  if (req.body.read) {
+    User.findByIdAndUpdate(req.user._id, { $push: { read: req.params.id } })
+    .then(user => {
+      res.status(200).json(user.read);
+    })
+    .catch(err => {
+      res.json(err);
+    })
+  }
+  if (!req.body.read) {
+    User.findByIdAndUpdate(req.user._id, { $pull: { read: req.params.id } })
+    .then(user => {
+      res.status(200).json(user.read);
+    })
+    .catch(err => {
+      res.json(err);
+    })
+  }
 });
 
 // const updateFeed = async (id) => {
@@ -191,16 +190,16 @@ router.put('/item/:id', (req, res) => {
 
 const updateFeed = async (id) => {
   try {
-    let updatedFeed;
     const feed = await Feed.findById(id);
     const parsedFeed = await parser.parseURL(feed.feedUrl)
     for (let item of parsedFeed.items) {
       const existingItem = await Item.findOne({ title: item.title, link: item.link, isoDate: item.isoDate, feed: feed._id });
       if (!existingItem) {
         const newItem = await Item.create({ ...item, feed: feed._id });
-        updatedFeed = await Feed.findByIdAndUpdate(feed._id, { $push: { feedItems: { $each: [newItem._id], $position: 0 } } }, { new: true });
+        await Feed.findByIdAndUpdate(feed._id, { $push: { feedItems: { $each: [newItem._id], $position: 0 } } }, { new: true });
       }
     }
+    const updatedFeed = await Feed.findById(id);
     return updatedFeed;
   } catch (err) {
     console.log(err);

@@ -5,44 +5,44 @@ const passport = require('passport');
 
 router.post('/signup', (req, res) => {
   const { username, password } = req.body;
-  if (password.length < 8) {
-    return res.status(400).json({ message: 'Your password has to be at least 8 characters long' });
-  }
   if (username === '') {
-    return res.status(400).json({ message: 'Your username cannot be empty' });
+    return res.status(400).json({ usernameError: 'Your username cannot be empty' });
   }
   User.findOne({ username: username })
-    .then(userFromDB => {
-      if (userFromDB !== null) {
-        return res.status(400).json({ message: 'This username is already taken' });
-      } else {
-        const salt = bcrypt.genSaltSync();
-        const hash = bcrypt.hashSync(password, salt);
-        User.create({ username: username, password: hash })
-          .then(createdUser => {
-            console.log(createdUser);
-            req.login(createdUser, err => {
-              if (err) {
-                return res.status(500).json({ message: 'Error while attempting to login' })
-              } else {
-                return res.status(200).json(createdUser);
-              }
-            })
+  .then(userFromDB => {
+    if (userFromDB !== null) {
+      return res.status(400).json({ usernameError: 'This username is already taken' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ passwordError: 'Your password has to be at least 8 characters long' });
+    } else {
+      const salt = bcrypt.genSaltSync();
+      const hash = bcrypt.hashSync(password, salt);
+      User.create({ username: username, password: hash })
+        .then(createdUser => {
+          console.log(createdUser);
+          req.login(createdUser, err => {
+            if (err) {
+              return res.status(500).json({ message: 'Error while logging in' })
+            } else {
+              return res.status(200).json(createdUser);
+            }
           })
-          .catch(err => {
-            res.json(err);
-          })
-      }
+        })
+        .catch(err => {
+          res.json(err);
+        })
+    }
     })
 });
 
 router.post('/login', (req, res) => {
-  passport.authenticate('local', (err, user) => {
+  passport.authenticate('local', (err, user, info) => {
     if (err) {
       return res.status(400).json({ message: 'Error while logging in' });
     }
     if (!user) {
-      return res.status(400).json({ message: 'Wrong credentials' });
+      return res.status(400).json(info);
     }
     req.login(user, err => {
       if (err) {
