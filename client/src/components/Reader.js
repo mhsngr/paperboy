@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Switch, Route, Link as RouterLink } from 'react-router-dom';
 import { signout } from '../services/auth';
-import { getUserFeeds } from '../services/feeds';
+import { getUserFeeds, getFeed } from '../services/feeds';
 import clsx from 'clsx';
-import { makeStyles } from '@material-ui/core/styles';
+import { fade, makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Drawer from '@material-ui/core/Drawer';
 import Box from '@material-ui/core/Box';
@@ -22,9 +22,16 @@ import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import AddIcon from '@material-ui/icons/Add';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Feed from './Feed';
 import FeedList from './FeedList';
+import Tooltip from '@material-ui/core/Tooltip';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import InputBase from '@material-ui/core/InputBase';
+import SearchIcon from '@material-ui/icons/Search';
 // import { mainListItems, secondaryListItems } from './listItems';
 // import Deposits from './Deposits';
 // import Orders from './Orders';
@@ -121,12 +128,57 @@ const useStyles = makeStyles((theme) => ({
   fixedHeight: {
     height: 240,
   },
+  search: {
+    position: 'relative',
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: fade(theme.palette.common.white, 0.15),
+    '&:hover': {
+      backgroundColor: fade(theme.palette.common.white, 0.25),
+    },
+    marginLeft: 0,
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      marginLeft: theme.spacing(1),
+      width: 'auto',
+    },
+  },
+  searchIcon: {
+    padding: theme.spacing(0, 2),
+    height: '100%',
+    position: 'absolute',
+    pointerEvents: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inputRoot: {
+    color: 'inherit',
+  },
+  inputInput: {
+    padding: theme.spacing(1, 1, 1, 0),
+    // vertical padding + font size from searchIcon
+    paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      width: '12ch',
+      '&:focus': {
+        width: '20ch',
+      },
+    },
+  },
 }));
 
 export default function Reader(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const [userFeeds, setUserFeeds] = useState([]);
+  // const [userFeeds, setUserFeeds] = useState([]);
+
+  // const [items, setItems] = useState(null);
+  // const [filteredItems, setFilteredItems] = useState(null);
+
+  const [title, setTitle] = useState('Paperboy');
+  const [searchQuery, setSearchQuery] = useState('');
   const handleSignout = () => {
     signout()
       .then(() => {
@@ -142,17 +194,42 @@ export default function Reader(props) {
   };
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
-  useEffect(() => {
-    getUserFeeds()
-      .then(fetchedFeed => {
-        setUserFeeds(fetchedFeed);
-      })
-      .catch(err => {
-        console.log(err);
-      })
-  }, [])
+  // useEffect(() => {
+  //   getUserFeeds()
+  //     .then(fetchedFeed => {
+  //       setUserFeeds(fetchedFeed);
+  //     })
+  //     .catch(err => {
+  //       console.log(err);
+  //     })
+  // }, [])
 
-  if (!userFeeds) return <LinearProgress />
+  //  useEffect(() => {
+  //   setItems(null);
+  //   setFilteredItems(null);
+  //   getFeed(props.match.params.id)
+  //     .then(fetchedFeed => {
+  //       setItems(fetchedFeed.feedItems);
+  //       setFilteredItems(fetchedFeed.feedItems);
+  //     })
+  //     .catch(err => {
+  //       console.log(err);
+  //     })
+  // }, [props.match.params.id])
+
+  const search = e => {
+    setSearchQuery(e.target.value);
+    // const filtered = e.target.value ? items.filter(item => item.title.toLowerCase().includes(e.target.value.toLowerCase())) : items;
+    // setFilteredItems(filtered);
+  }
+  // useEffect(() => {
+  //   if (!items) return;
+  //   console.log(props.searchQuery);
+  //   const filtered = props.searchQuery ? items.filter(item => item.title.toLowerCase().includes(props.searchQuery.toLowerCase())) : items;
+  //   setFilteredItems(filtered);
+  //   console.log(filtered);
+  // }, [props.searchQuery])
+
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -168,8 +245,23 @@ export default function Reader(props) {
             <MenuIcon />
           </IconButton>
           <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-            Paperboy
+            {title}
           </Typography>
+          <div className={classes.search}>
+            <div className={classes.searchIcon}>
+              <SearchIcon />
+            </div>
+            <InputBase
+              placeholder="Search…"
+              classes={{
+                root: classes.inputRoot,
+                input: classes.inputInput,
+              }}
+              inputProps={{ 'aria-label': 'search' }}
+              value={searchQuery}
+              onChange={search}
+            />
+          </div>
           <IconButton onClick={handleSignout} color="inherit">
               <ExitToAppIcon />
           </IconButton>
@@ -188,9 +280,18 @@ export default function Reader(props) {
           </IconButton>
         </div>
         <Divider />
-        <FeedList feeds={userFeeds} />
+        <FeedList/>
         <Divider />
-        {/* <List>{secondaryListItems}</List> */}
+        <List>
+          <Tooltip title="Add new feed" placement="right">
+            <ListItem button>
+              <ListItemIcon>
+                <AddIcon />
+              </ListItemIcon>
+              <ListItemText primary="Add new feed" />
+            </ListItem>
+          </Tooltip>
+        </List>
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
@@ -211,7 +312,13 @@ export default function Reader(props) {
             Recent Orders */}
             <Grid item xs={12}>
 
-              <Route path={'/:id'} component={Feed} />
+              <Route path={'/:id'}/>
+              <Route
+                path={'/:id'}
+                render={props => {
+                  return <Feed setTitle={setTitle} searchQuery={searchQuery} {...props} />
+                }}
+              />
 
               {/* <Paper className={classes.paper}>
                 <Feed id="609d2191006d6273628ae790" />

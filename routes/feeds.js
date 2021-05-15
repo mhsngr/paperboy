@@ -77,6 +77,16 @@ router.get('/', (req, res) => {
     })
 });
 
+router.get('/all', (req, res) => {
+  Feed.find()
+    .then(feeds => {
+       res.status(200).json(feeds)
+    })
+    .catch(err => {
+      res.json(err);
+    })
+});
+
 router.get('/:id', (req, res) => {
   Feed.findById(req.params.id)
     .then(feed => {

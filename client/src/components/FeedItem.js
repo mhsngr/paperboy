@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Container from '@material-ui/core/Container';
-import ListItem from '@material-ui/core/ListItem';
+// import Container from '@material-ui/core/Container';
+// import ListItem from '@material-ui/core/ListItem';
 import Typography from '@material-ui/core/Typography';
-import ListItemText from '@material-ui/core/ListItemText';
-import Collapse from '@material-ui/core/Collapse';
-import Divider from '@material-ui/core/Divider';
+// import ListItemText from '@material-ui/core/ListItemText';
+// import Collapse from '@material-ui/core/Collapse';
+// import Divider from '@material-ui/core/Divider';
 // import ListSubheader from '@material-ui/core/ListSubheader';
 // import InboxIcon from '@material-ui/icons/MoveToInbox';
 // import DraftsIcon from '@material-ui/icons/Drafts';
@@ -52,19 +52,18 @@ export default function FeedItem(props) {
         </Typography>
       </AccordionDetails>
     </Accordion>
+    // <>
+    //   <ListItem button onClick={handleClick}>
+    //     <ListItemText primary={props.item.title} />
+    //   </ListItem>
+    //   <Collapse in={open} timeout="auto" unmountOnExit>
+    //     <Container component="div" className={classes.feedItem}>
+    //       <Typography>
+    //         {props.item.content}
+    //       </Typography>
+    //     </Container>
+    //   </Collapse>
+    //   <Divider />
+    // </>
   );
 }
-
-{/* <>
-<ListItem button onClick={handleClick}>
-  <ListItemText primary={props.item.title} />
-</ListItem>
-<Collapse in={open} timeout="auto" unmountOnExit>
-  <Container component="div" className={classes.feedItem}>
-    <Typography>
-      {props.item.content}
-    </Typography>
-  </Container>
-</Collapse>
-<Divider />
-</> */}
