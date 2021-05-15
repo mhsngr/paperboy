@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Switch, Route, Link as RouterLink } from 'react-router-dom';
+import { signout } from '../services/auth';
+import { getUserFeeds } from '../services/feeds';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -18,8 +21,11 @@ import Link from '@material-ui/core/Link';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import NotificationsIcon from '@material-ui/icons/Notifications';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Feed from './Feed';
+import FeedList from './FeedList';
 // import { mainListItems, secondaryListItems } from './listItems';
-// import Chart from './Chart';
 // import Deposits from './Deposits';
 // import Orders from './Orders';
 
@@ -117,9 +123,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Reader() {
+export default function Reader(props) {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(false);
+  const [userFeeds, setUserFeeds] = useState([]);
+  const handleSignout = () => {
+    signout()
+      .then(() => {
+        props.setUser(null);
+        props.history.push('/');
+      })
+  };
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -128,6 +142,17 @@ export default function Reader() {
   };
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
+  useEffect(() => {
+    getUserFeeds()
+      .then(fetchedFeed => {
+        setUserFeeds(fetchedFeed);
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  }, [])
+
+  if (!userFeeds) return <LinearProgress />
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -143,12 +168,10 @@ export default function Reader() {
             <MenuIcon />
           </IconButton>
           <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-            Dashboard
+            Paperboy
           </Typography>
-          <IconButton color="inherit">
-            <Badge badgeContent={4} color="secondary">
-              <NotificationsIcon />
-            </Badge>
+          <IconButton onClick={handleSignout} color="inherit">
+              <ExitToAppIcon />
           </IconButton>
         </Toolbar>
       </AppBar>
@@ -165,33 +188,36 @@ export default function Reader() {
           </IconButton>
         </div>
         <Divider />
-        {/* <List>{mainListItems}</List> */}
+        <FeedList feeds={userFeeds} />
         <Divider />
         {/* <List>{secondaryListItems}</List> */}
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
-          <Grid container spacing={3}>
-            {/* Chart */}
+          {/* <Grid container spacing={3}> */}
+            {/* Chart
             <Grid item xs={12} md={8} lg={9}>
               <Paper className={fixedHeightPaper}>
-                {/* <Chart /> */}
+                <Chart />
               </Paper>
             </Grid>
-            {/* Recent Deposits */}
+            Recent Deposits
             <Grid item xs={12} md={4} lg={3}>
               <Paper className={fixedHeightPaper}>
-                {/* <Deposits /> */}
+                <Deposits />
               </Paper>
             </Grid>
-            {/* Recent Orders */}
+            Recent Orders */}
             <Grid item xs={12}>
-              <Paper className={classes.paper}>
-                {/* <Orders /> */}
-              </Paper>
+
+              <Route path={'/:id'} component={Feed} />
+
+              {/* <Paper className={classes.paper}>
+                <Feed id="609d2191006d6273628ae790" />
+              </Paper> */}
             </Grid>
-          </Grid>
+          {/* </Grid> */}
           <Box pt={4}>
             <Copyright />
           </Box>

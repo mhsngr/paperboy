@@ -20,7 +20,7 @@ const signin = (username, password) => {
     })
 }
 
-const logout = () => {
+const signout = () => {
   return axios.delete('/api/auth/logout')
     .then(response => {
       return response.data
@@ -30,4 +30,4 @@ const logout = () => {
     })
 }
 
-export { signup, logout, signin };
+export { signup, signin, signout };

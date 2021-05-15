@@ -66,6 +66,17 @@ router.post("/", (req, res) => {
     })
 });
 
+router.get('/', (req, res) => {
+  User.findById(req.user._id)
+    .populate('feeds')
+    .then(user => {
+       res.status(200).json(user.feeds)
+    })
+    .catch(err => {
+      res.json(err);
+    })
+});
+
 router.get('/:id', (req, res) => {
   Feed.findById(req.params.id)
     .then(feed => {
@@ -74,12 +85,22 @@ router.get('/:id', (req, res) => {
       } else {
         updateFeed(feed._id)
           .then(updatedFeed => {
-            res.status(200).json(updatedFeed)
+            Feed.findById(updatedFeed.id)
+              .populate('feedItems')
+              .then(populatedFeed => {
+                res.status(200).json(populatedFeed)
+              })
+              .catch(err => {
+                res.json(err);
+              })
           })
           .catch(err => {
             res.json(err);
           })
       }
+    })
+    .catch(err => {
+      res.json(err);
     })
 });
 

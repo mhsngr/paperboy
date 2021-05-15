@@ -7,6 +7,7 @@ import { Route, Redirect } from 'react-router-dom';
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
 import Reader from './components/Reader';
+import Feed from './components/Feed';
 
 function App(props) {
   const [user, setUser] = useState(props.user);
@@ -27,10 +28,10 @@ function App(props) {
     <ThemeProvider theme={theme}>
       <CssBaseline/>
       <Route
-        exact path='/'
+        path='/'
         render={props => {
           if (user) {
-            return <Reader {...props} />
+            return <Reader setUser={setUser} {...props} />
           } else return <Redirect to='/signin' />
         }}
       />
