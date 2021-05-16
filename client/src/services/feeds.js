@@ -45,4 +45,54 @@ const getIcon = (link) => {
   return `https://logo.clearbit.com/${url.hostname}`
 }
 
-export { addFeed, getFeed, getUserFeeds, getAllFeeds, getIcon };
+const starItem = (id) => {
+  return axios.put(`/api/feeds/item/${id}`, { starred: true })
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
+      return err;
+    })
+}
+
+const unstarItem = (id) => {
+  return axios.put(`/api/feeds/item/${id}`, { starred: false })
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
+      return err;
+    })
+}
+
+const getStarred = () => {
+  return axios.get('/api/feeds/starred')
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
+      return err;
+    })
+}
+
+const markRead = (id) => {
+  return axios.put(`/api/feeds/item/${id}`, { read: true })
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
+      return err;
+    })
+}
+
+const unmarkRead = (id) => {
+  return axios.put(`/api/feeds/item/${id}`, { read: false })
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
+      return err;
+    })
+}
+
+export { addFeed, getFeed, getUserFeeds, getAllFeeds, getIcon, starItem, unstarItem, getStarred, markRead, unmarkRead };

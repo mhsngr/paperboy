@@ -31,7 +31,7 @@ function App(props) {
         path='/'
         render={props => {
           if (user) {
-            return <Reader setUser={setUser} {...props} />
+            return <Reader setUser={setUser} user={user} {...props} />
           } else return <Redirect to='/signin' />
         }}
       />

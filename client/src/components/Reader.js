@@ -32,6 +32,9 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
+import MenuItem from '@material-ui/core/MenuItem';
+import Menu from '@material-ui/core/Menu';
+import Avatar from '@material-ui/core/Avatar';
 // import { mainListItems, secondaryListItems } from './listItems';
 // import Deposits from './Deposits';
 // import Orders from './Orders';
@@ -55,31 +58,31 @@ const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
   },
-  toolbar: {
-    paddingRight: 24, // keep right padding when drawer closed
-  },
-  toolbarIcon: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    padding: '0 8px',
-    ...theme.mixins.toolbar,
-  },
+  // toolbar: {
+  //   paddingRight: 24, // keep right padding when drawer closed
+  // },
+  // toolbarIcon: {
+  //   display: 'flex',
+  //   alignItems: 'center',
+  //   justifyContent: 'flex-end',
+  //   padding: '0 8px',
+  //   ...theme.mixins.toolbar,
+  // },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
+    // transition: theme.transitions.create(['width', 'margin'], {
+    //   easing: theme.transitions.easing.sharp,
+    //   duration: theme.transitions.duration.leavingScreen,
+    // }),
   },
-  appBarShift: {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  },
+  // appBarShift: {
+  //   marginLeft: drawerWidth,
+  //   width: `calc(100% - ${drawerWidth}px)`,
+  //   transition: theme.transitions.create(['width', 'margin'], {
+  //     easing: theme.transitions.easing.sharp,
+  //     duration: theme.transitions.duration.enteringScreen,
+  //   }),
+  // },
   menuButton: {
     marginRight: 36,
   },
@@ -116,8 +119,9 @@ const useStyles = makeStyles((theme) => ({
     overflow: 'auto',
   },
   container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
+    // paddingTop: theme.spacing(4),
+    // paddingBottom: theme.spacing(4),
+    padding: 0,
   },
   paper: {
     padding: theme.spacing(2),
@@ -172,13 +176,15 @@ const useStyles = makeStyles((theme) => ({
 export default function Reader(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   // const [userFeeds, setUserFeeds] = useState([]);
 
-  // const [items, setItems] = useState(null);
-  // const [filteredItems, setFilteredItems] = useState(null);
-
-  const [title, setTitle] = useState('Paperboy');
-  const [searchQuery, setSearchQuery] = useState('');
+  const handleProfileMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
   const handleSignout = () => {
     signout()
       .then(() => {
@@ -186,12 +192,35 @@ export default function Reader(props) {
         props.history.push('/');
       })
   };
+
+  const renderMenu = (
+    <Menu
+      anchorEl={anchorEl}
+      getContentAnchorEl={null}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      id='account-menu'
+      keepMounted
+      transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+      open={Boolean(anchorEl)}
+      onClose={handleMenuClose}
+    >
+      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+      <MenuItem onClick={handleSignout}>Sign Out</MenuItem>
+    </Menu>
+  );
+  // const [items, setItems] = useState(null);
+  // const [filteredItems, setFilteredItems] = useState(null);
+
+  const [title, setTitle] = useState('Paperboy');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const handleDrawerOpen = () => {
-    setOpen(true);
+    if (open) setOpen(false);
+    if (!open) setOpen(true);
   };
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
+  // const handleDrawerClose = () => {
+  //   setOpen(false);
+  // };
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
   // useEffect(() => {
@@ -229,18 +258,19 @@ export default function Reader(props) {
   //   setFilteredItems(filtered);
   //   console.log(filtered);
   // }, [props.searchQuery])
-
   return (
     <div className={classes.root}>
       <CssBaseline />
-      <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}>
+      {/* <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}> */}
+      <AppBar className={classes.appBar}>
         <Toolbar className={classes.toolbar}>
           <IconButton
             edge="start"
             color="inherit"
             aria-label="open drawer"
             onClick={handleDrawerOpen}
-            className={clsx(classes.menuButton, open && classes.menuButtonHidden)}
+            // className={clsx(classes.menuButton, open && classes.menuButtonHidden)}
+            className={classes.menuButton}
           >
             <MenuIcon />
           </IconButton>
@@ -262,36 +292,40 @@ export default function Reader(props) {
               onChange={search}
             />
           </div>
-          <IconButton onClick={handleSignout} color="inherit">
+          <IconButton
+              edge="end"
+              // size="small"
+              aria-label="account of current user"
+              aria-controls='account-menu'
+              aria-haspopup="true"
+              onClick={handleProfileMenuOpen}
+              color="inherit"
+            >
+              <Avatar src={props.user.picture} alt={props.user.username} />
+            </IconButton>
+          {/* <IconButton onClick={handleSignout} color="inherit">
               <ExitToAppIcon />
-          </IconButton>
+          </IconButton> */}
         </Toolbar>
       </AppBar>
+      {renderMenu}
       <Drawer
+        className={classes.drawer}
         variant="permanent"
         classes={{
           paper: clsx(classes.drawerPaper, !open && classes.drawerPaperClose),
         }}
         open={open}
       >
-        <div className={classes.toolbarIcon}>
+        {/* <div className={classes.toolbarIcon}>
           <IconButton onClick={handleDrawerClose}>
             <ChevronLeftIcon />
           </IconButton>
         </div>
-        <Divider />
+        <Divider /> */}
+        <Toolbar />
         <FeedList/>
         <Divider />
-        <List>
-          <Tooltip title="Add new feed" placement="right">
-            <ListItem button>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText primary="Add new feed" />
-            </ListItem>
-          </Tooltip>
-        </List>
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
@@ -310,7 +344,7 @@ export default function Reader(props) {
               </Paper>
             </Grid>
             Recent Orders */}
-            <Grid item xs={12}>
+            {/* <Grid item xs={12}> */}
 
               <Route path={'/:id'}/>
               <Route
@@ -323,11 +357,11 @@ export default function Reader(props) {
               {/* <Paper className={classes.paper}>
                 <Feed id="609d2191006d6273628ae790" />
               </Paper> */}
-            </Grid>
+            {/* </Grid> */}
           {/* </Grid> */}
-          <Box pt={4}>
+          {/* <Box pt={4}>
             <Copyright />
-          </Box>
+          </Box> */}
         </Container>
       </main>
     </div>

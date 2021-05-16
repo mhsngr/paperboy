@@ -66,6 +66,10 @@ const useStyles = makeStyles((theme) => ({
       width: '20ch',
     },
   },
+  menuButton: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
 }));
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -113,10 +117,14 @@ export default function AddFeed(props) {
   if (!filteredFeeds) return (
     <Tooltip title="Add new feed" placement="right">
       <ListItem button onClick={handleClickOpen}>
-        <ListItemIcon>
-          <Avatar variant="rounded">
-            <AddIcon/>
-          </Avatar>
+        <ListItemIcon className={classes.menuButton}>
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="add new feed"
+        >
+          <AddIcon/>
+        </IconButton>
         </ListItemIcon>
         <ListItemText primary="Add new feed" />
       </ListItem>
@@ -148,7 +156,7 @@ export default function AddFeed(props) {
                 <SearchIcon />
               </div>
               <InputBase
-                placeholder="Search…"
+                placeholder="Search or enter URL"
                 classes={{
                   root: classes.inputRoot,
                   input: classes.inputInput,

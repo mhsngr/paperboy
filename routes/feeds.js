@@ -87,6 +87,25 @@ router.get('/all', (req, res) => {
     })
 });
 
+router.get('/starred', (req, res) => {
+  User.findById(req.user._id)
+    .then(user => {
+      console.log(user.starred);
+      Item.find({ _id: [ ...user.starred ] })
+          .then(starredItems => {
+            console.log(starredItems);
+            const ids = starredItems.map(item => item._id);
+            res.status(200).json(ids);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+    })
+    .catch(err => {
+      res.json(err);
+    })
+});
+
 router.get('/:id', (req, res) => {
   Feed.findById(req.params.id)
     .then(feed => {
@@ -147,37 +166,63 @@ router.get('/item/:id', (req, res) => {
 });
 
 router.put('/item/:id', (req, res) => {
+  console.log(req.body);
   if (req.body.starred) {
-    User.findByIdAndUpdate(req.user._id, { $push: { starred: req.params.id } })
+    User.findByIdAndUpdate(req.user._id, { $push: { starred: req.params.id } }, { new: true })
     .then(user => {
-      res.status(200).json(user.starred);
+      Item.find({ _id: [ ...user.starred ] })
+      .then(starredItems => {
+        const ids = starredItems.map(item => item._id);
+        res.status(200).json(ids);
+      })
+      .catch(err => {
+        res.json(err);
+      })
     })
     .catch(err => {
       res.json(err);
     })
-  }
-  if (!req.body.starred) {
-    User.findByIdAndUpdate(req.user._id, { $pull: { starred: req.params.id } })
+  } else if (!req.body.starred) {
+    User.findByIdAndUpdate(req.user._id, { $pull: { starred: req.params.id } }, { new: true })
     .then(user => {
-      res.status(200).json(user.starred);
+      Item.find({ _id: [ ...user.starred ] })
+      .then(starredItems => {
+        const ids = starredItems.map(item => item._id);
+        res.status(200).json(ids);
+      })
+      .catch(err => {
+        res.json(err);
+      })
     })
     .catch(err => {
       res.json(err);
     })
-  }
-  if (req.body.read) {
-    User.findByIdAndUpdate(req.user._id, { $push: { read: req.params.id } })
+  } else if (req.body.read) {
+    User.findByIdAndUpdate(req.user._id, { $push: { read: req.params.id } }, { new: true })
     .then(user => {
-      res.status(200).json(user.read);
+      Item.find({ _id: [ ...user.starred ] })
+      .then(starredItems => {
+        const ids = starredItems.map(item => item._id);
+        res.status(200).json(ids);
+      })
+      .catch(err => {
+        res.json(err);
+      })
     })
     .catch(err => {
       res.json(err);
     })
-  }
-  if (!req.body.read) {
-    User.findByIdAndUpdate(req.user._id, { $pull: { read: req.params.id } })
+  } else if (!req.body.read) {
+    User.findByIdAndUpdate(req.user._id, { $pull: { read: req.params.id } }, { new: true })
     .then(user => {
-      res.status(200).json(user.read);
+      Item.find({ _id: [ ...user.starred ] })
+      .then(starredItems => {
+        const ids = starredItems.map(item => item._id);
+        res.status(200).json(ids);
+      })
+      .catch(err => {
+        res.json(err);
+      })
     })
     .catch(err => {
       res.json(err);

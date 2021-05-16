@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFeed } from '../services/feeds';
+import { getFeed, getStarred, starItem, unstarItem  } from '../services/feeds';
 import { makeStyles } from '@material-ui/core/styles';
 // import List from '@material-ui/core/List';
 // import ListItem from '@material-ui/core/ListItem';
@@ -24,15 +24,43 @@ export default function Feed(props) {
 
   const [feed, setFeed] = useState(null);
   const [filteredItems, setFilteredItems] = useState(null);
+  const [starredItems, setStarredItems] = useState(null);
+
+  const handleStarItem = (id) => {
+    starItem(id)
+      .then(items => {
+        setStarredItems(items);
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  }
+
+  const handleUnstarItem = (id) => {
+    unstarItem(id)
+      .then(items => {
+        setStarredItems(items);
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  }
 
   useEffect(() => {
     setFeed(null);
     setFilteredItems(null);
-    getFeed(props.match.params.id)
-      .then(fetchedFeed => {
-        setFeed(fetchedFeed);
-        setFilteredItems(fetchedFeed.feedItems);
-        props.setTitle(fetchedFeed.title)
+    getStarred()
+      .then(items => {
+        setStarredItems(items);
+        getFeed(props.match.params.id)
+          .then(fetchedFeed => {
+            setFeed(fetchedFeed);
+            setFilteredItems(fetchedFeed.feedItems);
+            props.setTitle(fetchedFeed.title)
+          })
+          .catch(err => {
+            console.log(err);
+          })
       })
       .catch(err => {
         console.log(err);
@@ -51,7 +79,7 @@ export default function Feed(props) {
     <div className={classes.root}>
       {filteredItems.map(item => {
         return (
-          <FeedItem key={item._id} item={item} />
+          <FeedItem key={item._id} item={item} handleStarItem={handleStarItem} handleUnstarItem={handleUnstarItem} starred={starredItems.includes(item._id)} />
         )
       })}
     </div>

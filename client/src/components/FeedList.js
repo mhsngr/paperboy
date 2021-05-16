@@ -24,6 +24,9 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 //     width: theme.spacing(3),
 //     height: theme.spacing(3),
 //   },
+//   menuButton: {
+//     marginRight: 36,
+//   },
 // }));
 
 export default function FeedList() {
