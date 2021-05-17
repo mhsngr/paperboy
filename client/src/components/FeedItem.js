@@ -22,6 +22,12 @@ import IconButton from '@material-ui/core/IconButton';
 import TurnedInIcon from '@material-ui/icons/TurnedIn';
 import TurnedInNotIcon from '@material-ui/icons/TurnedInNot';
 import Tooltip from '@material-ui/core/Tooltip';
+import Button from '@material-ui/core/Button';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+import CloseIcon from '@material-ui/icons/Close';
+import Link from '@material-ui/core/Link';
+import DOMPurify from 'dompurify';
+import DoneIcon from '@material-ui/icons/Done';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -31,11 +37,17 @@ const useStyles = makeStyles((theme) => ({
   //   backgroundColor: theme.palette.background.paper,
   // },
   feedItem: {
-    paddingLeft: theme.spacing(4),
+    padding: theme.spacing(0,9,3,9),
+  },
+  feedItemHeading: {
+    paddingBottom: theme.spacing(1),
   },
   feedHeader: {
     display: 'flex',
     justifyContent: 'space-between',
+  },
+  toolbar: {
+    paddingBottom: theme.spacing(2),
   },
   // title: {
   //   "&:hover": {
@@ -51,6 +63,14 @@ export default function FeedItem(props) {
   const handleClick = () => {
     setOpen(!open);
   };
+
+  // const renderCategories = categories => {
+  //   const text = categories.join(', ')
+  //   console.log(text)
+  //   // const trimmed = text.slice(0, -1);
+  //   // console.log(trimmed)
+  //   // return trimmed;
+  // }
   return (
     // <Accordion>
     //   <AccordionSummary className={classes.title}>
@@ -74,46 +94,138 @@ export default function FeedItem(props) {
     //   </AccordionDetails>
     // </Accordion>
     <>
-      <ListItem button dense>
-        <ListItemIcon>
-          <Tooltip title="Read later">
-          {props.starred ?
-          (
-            <IconButton
-              size="small"
-              aria-label="read later"
-              onClick={() => props.handleUnstarItem(props.item._id)}
+        {open ? (
+          <ListItem dense onClick={handleClick}>
+            <ListItemText />
+            {props.read ?
+              <IconButton size="small">
+                <CloseIcon />
+              </IconButton>
+              :
+              <IconButton size="small" onClick={() => props.handleMarkRead(props.item._id)}>
+                <DoneIcon />
+              </IconButton>
+            }
+          </ListItem>
+        ) : (
+          <ListItem button dense>
+            <ListItemIcon>
+              <Tooltip title="Read later">
+              {props.starred ?
+              (
+                <IconButton
+                  size="small"
+                  aria-label="read later"
+                  onClick={() => props.handleUnstarItem(props.item._id)}
+                >
+                  <TurnedInIcon fontSize="small" />
+                </IconButton>
+              ) :
+              (
+                <IconButton 
+                  size="small"
+                  aria-label="read later"
+                  onClick={() => props.handleStarItem(props.item._id)}
+                >
+                  <TurnedInNotIcon fontSize="small"/>
+                </IconButton>
+              )}
+              </Tooltip>
+            </ListItemIcon>
+            <ListItemText
+              onClick={handleClick}
+              primary={
+                <div className={classes.feedHeader}>
+                <Typography color={props.read ? 'textSecondary' : 'textPrimary' }>{props.item.title}</Typography>
+                <span>{getAge(props.item.isoDate)}</span>
+                </div>
+              }
+            />
+          </ListItem>
+        )}
+      <Collapse in={open} timeout="auto" unmountOnExit>
+        <Container component="div" className={classes.feedItem}>
+          <Typography variant="h5" color={props.read ? 'textSecondary' : 'textPrimary' } className={classes.feedItemHeading}>
+            {props.read ?
+            <Link
+              href={props.item.link}
+              target="_blank"
+              rel="noreferrer"
+              color="inherit"
+              underline="none"
             >
-              <TurnedInIcon fontSize="small" />
-            </IconButton>
-          ) :
-          (
-            <IconButton 
-              size="small"
-              aria-label="read later"
-              onClick={() => props.handleStarItem(props.item._id)}
+            {props.item.title}
+            </Link>
+            :
+            <Link
+              href={props.item.link}
+              target="_blank"
+              rel="noreferrer"
+              color="inherit"
+              underline="none"
+              onClick={() => props.handleMarkRead(props.item._id)}
             >
-              <TurnedInNotIcon fontSize="small"/>
-            </IconButton>
-          )}
-          </Tooltip>
-        </ListItemIcon>
-        <ListItemText
-          onClick={handleClick}
-          primary={
-            <div className={classes.feedHeader}>
-            <span>{props.item.title}</span>
-            <span>{getAge(props.item.isoDate)}</span>
-            </div>
+            {props.item.title}
+            </Link>
+            }
+          </Typography>
+          {props.item.author || props.item.creator ? 
+          (
+            <Typography variant="subtitle2" paragraph>{props.feedTitle} by {props.item.author || props.item.creator}, {new Date(props.item.isoDate).toLocaleString()}</Typography>
+          ) : <Typography variant="subtitle2" paragraph>{props.feedTitle}, {new Date(props.item.isoDate).toLocaleString()}</Typography>}
+          {props.item.categories.length > 0 ? 
+          (
+            <Typography variant="subtitle2" paragraph>Category: {props.item.categories.join(', ')}</Typography>
+          ) : <></>}
+          <ButtonGroup className={classes.toolbar}>
+            <Tooltip title="Read later">
+              {props.starred ?
+              (
+                <Button
+                  aria-label="read later"
+                  onClick={() => props.handleUnstarItem(props.item._id)}
+                >
+                  <TurnedInIcon />
+                </Button>
+              ) :
+              (
+                <Button 
+                  aria-label="read later"
+                  onClick={() => props.handleStarItem(props.item._id)}
+                >
+                  <TurnedInNotIcon />
+                </Button>
+              )}
+            </Tooltip>
+            <Button>Share</Button>
+          </ButtonGroup>
+          {props.item['content:encoded'] || props.item.content ? 
+          (
+            <Typography variant="body1" paragraph dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(props.item['content:encoded'] || props.item.content)}} />
+          ) : <></>}
+          {props.read ?
+            <Button
+              href={props.item.link}
+              target="_blank"
+              rel="noreferrer"
+              variant="outlined"
+              fullWidth
+            >
+              Visit Website
+            </Button>
+            :
+            <Button
+              href={props.item.link}
+              target="_blank"
+              rel="noreferrer"
+              variant="outlined"
+              fullWidth
+              onClick={() => props.handleMarkRead(props.item._id)}
+            >
+              Visit Website
+            </Button>
           }
-        />
-       </ListItem>
-       <Collapse in={open} timeout="auto" unmountOnExit>
-         <Container component="div" className={classes.feedItem}>
-           <Typography>
-             {props.item.content}
-           </Typography>
-         </Container>
+        </Container>
       </Collapse>
       <Divider />
     </>

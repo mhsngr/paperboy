@@ -130,6 +130,7 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: fade(theme.palette.common.white, 0.25),
     },
     marginLeft: 0,
+    marginRight: theme.spacing(1),
     width: '100%',
     [theme.breakpoints.up('sm')]: {
       marginLeft: theme.spacing(1),
@@ -254,7 +255,7 @@ export default function Reader(props) {
       <CssBaseline />
       {/* <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}> */}
       <AppBar className={classes.appBar}>
-        <Toolbar className={classes.toolbar}>
+        <Toolbar>
           <IconButton
             edge="start"
             color="inherit"
@@ -283,7 +284,7 @@ export default function Reader(props) {
               onChange={search}
             />
           </div>
-          <IconButton onClick={toggleDark}>
+          <IconButton onClick={toggleDark} color="inherit">
             {dark ? <WbSunnyIcon /> : <Brightness3Icon />}
           </IconButton>
           <IconButton

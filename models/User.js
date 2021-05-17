@@ -9,19 +9,22 @@ const userSchema = new Schema({
   feeds: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'Feed'
+      ref: 'Feed',
+      unique: true
     }
   ],
   read: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'Feed'
+      ref: 'Feed',
+      unique: true
     }
   ],
   starred: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'Feed'
+      ref: 'Feed',
+      unique: true
     }
   ]
 });

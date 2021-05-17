@@ -115,6 +115,42 @@ router.get('/starred', (req, res) => {
     })
 });
 
+router.get('/read', (req, res) => {
+  User.findById(req.user._id)
+    .then(user => {
+      Item.find({ _id: [ ...user.read ] })
+          .then(readItems => {
+            readItems.sort((a, b) => b.isoDate - a.isoDate);
+            const ids = readItems.map(item => item._id);
+            res.status(200).json(ids);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+    })
+    .catch(err => {
+      res.json(err);
+    })
+});
+
+router.get('/:id/read', (req, res) => {
+  User.findById(req.user._id)
+    .then(user => {
+      Item.find({ $and: [ { _id: [ ...user.read ] }, { feed: req.params.id } ] })
+          .then(readItems => {
+            readItems.sort((a, b) => b.isoDate - a.isoDate);
+            const ids = readItems.map(item => item._id);
+            res.status(200).json(ids);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+    })
+    .catch(err => {
+      res.json(err);
+    })
+});
+
 router.get('/:id', (req, res) => {
   Feed.findById(req.params.id)
     .then(feed => {
@@ -175,23 +211,48 @@ router.get('/item/:id', (req, res) => {
     })
 });
 
-router.put('/item/:id', (req, res) => {
-  if (req.body.starred) {
-    User.findByIdAndUpdate(req.user._id, { $push: { starred: req.params.id } }, { new: true })
-    .then(user => {
-      Item.find({ _id: [ ...user.starred ] })
-      .then(starredItems => {
-        const ids = starredItems.map(item => item._id);
-        res.status(200).json(ids);
-      })
-      .catch(err => {
-        res.json(err);
-      })
+router.put('/item/read', (req, res) => {
+  User.findByIdAndUpdate(req.user._id, { $push: { read: req.body.read } }, { new: true })
+  .then(user => {
+    Item.find({ _id: [ ...user.read ] })
+    .then(readItems => {
+      const ids = readItems.map(item => item._id);
+      res.status(200).json(ids);
     })
     .catch(err => {
       res.json(err);
     })
-  } else if (!req.body.starred) {
+  })
+});
+
+router.put('/item/:id', (req, res) => {
+  if (req.body.starred === true) {
+    User.find({ $and: [ { _id: req.user._id }, { starred: req.params.id } ] })
+    .then(user => {
+      if (user.length > 0) {
+        res.status(400).json({ message: 'Already starred' });
+      }
+      else {
+        User.findByIdAndUpdate(req.user._id, { $push: { starred: req.params.id } }, { new: true })
+        .then(user => {
+          Item.find({ _id: [ ...user.starred ] })
+          .then(starredItems => {
+            const ids = starredItems.map(item => item._id);
+            res.status(200).json(ids);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+        })
+        .catch(err => {
+          res.json(err);
+        })
+      }
+    })
+    .catch(err => {
+      res.json(err);
+    })
+  } else if (req.body.starred === false) {
     User.findByIdAndUpdate(req.user._id, { $pull: { starred: req.params.id } }, { new: true })
     .then(user => {
       Item.find({ _id: [ ...user.starred ] })
@@ -206,27 +267,38 @@ router.put('/item/:id', (req, res) => {
     .catch(err => {
       res.json(err);
     })
-  } else if (req.body.read) {
-    User.findByIdAndUpdate(req.user._id, { $push: { read: req.params.id } }, { new: true })
+  } else if (req.body.read === true) {
+    User.find( {$and: [{ _id: req.user._id }, { read: req.params.id }]})
     .then(user => {
-      Item.find({ _id: [ ...user.starred ] })
-      .then(starredItems => {
-        const ids = starredItems.map(item => item._id);
-        res.status(200).json(ids);
-      })
-      .catch(err => {
-        res.json(err);
-      })
+      if (user.length > 0) {
+        res.status(400).json({ message: 'Already marked as read' });
+      }
+      else {
+        User.findByIdAndUpdate(req.user._id, { $push: { read: req.params.id } }, { new: true })
+        .then(user => {
+          Item.find({ _id: [ ...user.read ] })
+          .then(readItems => {
+            const ids = readItems.map(item => item._id);
+            res.status(200).json(ids);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+        })
+        .catch(err => {
+          res.json(err);
+        })
+      }
     })
     .catch(err => {
       res.json(err);
     })
-  } else if (!req.body.read) {
+  } else if (req.body.read === false) {
     User.findByIdAndUpdate(req.user._id, { $pull: { read: req.params.id } }, { new: true })
     .then(user => {
-      Item.find({ _id: [ ...user.starred ] })
-      .then(starredItems => {
-        const ids = starredItems.map(item => item._id);
+      Item.find({ _id: [ ...user.read ] })
+      .then(readItems => {
+        const ids = readItems.map(item => item._id);
         res.status(200).json(ids);
       })
       .catch(err => {

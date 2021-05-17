@@ -61,7 +61,7 @@ const starItem = (id) => {
       return response.data;
     })
     .catch(err => {
-      return err;
+      return err.response.data;
     })
 }
 
@@ -71,7 +71,7 @@ const unstarItem = (id) => {
       return response.data;
     })
     .catch(err => {
-      return err;
+      return err.response.data;
     })
 }
 
@@ -91,7 +91,7 @@ const markRead = (id) => {
       return response.data;
     })
     .catch(err => {
-      return err;
+      return err.response.data;
     })
 }
 
@@ -101,8 +101,28 @@ const unmarkRead = (id) => {
       return response.data;
     })
     .catch(err => {
+      return err.response.data;
+    })
+}
+
+const markAllRead = (ids) => {
+  return axios.put('/api/feeds/item/read', { read: ids })
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
+      return err.response.data;
+    })
+}
+
+const getRead = (id) => {
+  return axios.get(`/api/feeds/${id}/read`)
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
       return err;
     })
 }
 
-export { addFeed, getFeed, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead };
+export { addFeed, getFeed, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead, markAllRead, getRead };

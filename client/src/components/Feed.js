@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFeed, getStarred, starItem, unstarItem  } from '../services/feeds';
+import { getFeed, getStarred, starItem, unstarItem, markRead, unmarkRead, markAllRead, getRead } from '../services/feeds';
 import { makeStyles } from '@material-ui/core/styles';
 // import List from '@material-ui/core/List';
 // import ListItem from '@material-ui/core/ListItem';
@@ -10,12 +10,31 @@ import { makeStyles } from '@material-ui/core/styles';
 // import DraftsIcon from '@material-ui/icons/Drafts';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import FeedItem from './FeedItem';
+import Typography from '@material-ui/core/Typography';
+import List from '@material-ui/core/List';
+import Link from '@material-ui/core/Link';
+import Divider from '@material-ui/core/Divider';
+import Container from '@material-ui/core/Container';
+import DoneIcon from '@material-ui/icons/Done';
+import IconButton from '@material-ui/core/IconButton';
+import DoneAllIcon from '@material-ui/icons/DoneAll';
+import Badge from '@material-ui/core/Badge';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
     // maxWidth: 360,
     backgroundColor: theme.palette.background.paper,
+  },
+  feedDetails: {
+    paddingTop: theme.spacing(2),
+  },
+  feedHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+  },
+  feedList: {
+    padding: 0,
   },
 }));
 
@@ -25,11 +44,13 @@ export default function Feed(props) {
   const [feed, setFeed] = useState(null);
   const [filteredItems, setFilteredItems] = useState(null);
   const [starredItems, setStarredItems] = useState(null);
+  const [readItems, setReadItems] = useState(null);
 
   const handleStarItem = (id) => {
     starItem(id)
       .then(items => {
-        setStarredItems(items);
+        if (items.message) console.log(items.message);
+        else setStarredItems(items);
       })
       .catch(err => {
         console.log(err);
@@ -46,17 +67,79 @@ export default function Feed(props) {
       })
   }
 
+  const handleMarkRead = (id) => {
+    markRead(id)
+      .then(response => {
+        if (response.message) console.log(response.message);
+        else {
+          getRead(feed._id)
+            .then(fetchedReadItems => {
+              setReadItems(fetchedReadItems);
+            })
+            .catch(err => {
+              console.log(err);
+            })
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  }
+
+  const handleMarkAllRead = (items) => {
+    const ids = items.map(item => item._id);
+    markAllRead(ids)
+      .then(response => {
+        if (response.message) console.log(response.message);
+        else {
+          getRead(feed._id)
+            .then(fetchedReadItems => {
+              setReadItems(fetchedReadItems);
+            })
+            .catch(err => {
+              console.log(err);
+            })
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  }
+
+  const handleUnmarkRead = (id) => {
+    unmarkRead(id)
+      .then(() => {
+        getRead(feed._id)
+          .then(fetchedReadItems => {
+            setReadItems(fetchedReadItems);
+          })
+          .catch(err => {
+            console.log(err);
+          })
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  }
+
   useEffect(() => {
     setFeed(null);
     setFilteredItems(null);
     getStarred()
-      .then(items => {
-        setStarredItems(items);
+      .then(fetchedStarredItems => {
+        setStarredItems(fetchedStarredItems);
         getFeed(props.match.params.id)
           .then(fetchedFeed => {
-            setFeed(fetchedFeed);
-            setFilteredItems(fetchedFeed.feedItems);
-            props.setTitle(fetchedFeed.title)
+            getRead(fetchedFeed._id)
+              .then(fetchedReadItems => {
+                setReadItems(fetchedReadItems);
+                setFeed(fetchedFeed);
+                setFilteredItems(fetchedFeed.feedItems);
+                props.setTitle(fetchedFeed.title)
+              })
+              .catch(err => {
+                console.log(err);
+              })
           })
           .catch(err => {
             console.log(err);
@@ -72,16 +155,70 @@ export default function Feed(props) {
     const filtered = props.searchQuery ? feed.feedItems.filter(item => item.title.toLowerCase().includes(props.searchQuery.toLowerCase())) : feed.feedItems;
     setFilteredItems(filtered);
   }, [props.searchQuery])
-  
   if (!filteredItems) return <LinearProgress />
-  // props.setTitle(feed.title)
   return (
     <div className={classes.root}>
-      {filteredItems.map(item => {
-        return (
-          <FeedItem key={item._id} item={item} handleStarItem={handleStarItem} handleUnstarItem={handleUnstarItem} starred={starredItems.includes(item._id)} />
-        )
-      })}
+      <Container component="div" className={classes.feedDetails}>
+        <div className={classes.feedHeader}>
+          <Typography variant="h4">
+              <Link
+                href={feed.link}
+                target="_blank"
+                rel="noreferrer"
+                color="inherit"
+                underline="none"
+              >
+              {feed.title}
+              </Link>
+            </Typography>
+            {(feed.feedItems.length - readItems.length) === 0 ?
+              <IconButton>
+                <DoneAllIcon/>
+              </IconButton>
+              :
+              <Badge
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'left',
+                }}
+                badgeContent={feed.feedItems.length - readItems.length}
+                color="primary"
+                overlap="circle"
+                max={999}
+              >
+                <IconButton onClick={() => handleMarkAllRead(filteredItems)}>
+                  <DoneIcon/>
+                </IconButton>
+              </Badge>
+            }
+        </div>
+          {feed.description ? 
+          (
+            <Typography variant="subtitle1">{feed.description}</Typography>
+          ) : <></>}
+          {feed.category ? 
+          (
+            <Typography variant="subtitle2" paragraph>Category: {feed.category.join(', ')}, {feed.feedItems.length} articles</Typography>
+          ) : <Typography variant="subtitle2" paragraph>{feed.feedItems.length} articles</Typography>}
+      </Container>
+      <Divider />
+      <List  className={classes.feedList}>
+        {filteredItems.map(item => {
+          return (
+            <FeedItem
+              key={item._id}
+              feedTitle={feed.title}
+              item={item}
+              handleStarItem={handleStarItem}
+              handleUnstarItem={handleUnstarItem}
+              starred={starredItems.includes(item._id)}
+              handleMarkRead={handleMarkRead}
+              handleUnmarkRead={handleUnmarkRead}
+              read={readItems.includes(item._id)}
+            />
+          )
+        })}
+      </List>
     </div>
   );
 }
