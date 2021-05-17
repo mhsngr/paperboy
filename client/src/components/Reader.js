@@ -26,6 +26,7 @@ import AddIcon from '@material-ui/icons/Add';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Feed from './Feed';
 import FeedList from './FeedList';
+import ReadLater from './ReadLater';
 import Tooltip from '@material-ui/core/Tooltip';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -340,14 +341,20 @@ export default function Reader(props) {
             </Grid>
             Recent Orders */}
             {/* <Grid item xs={12}> */}
-
-              <Route path={'/:id'}/>
+            <Switch>
               <Route
-                path={'/:id'}
+                exact path={'/read-later'}
+                render={props => {
+                  return <ReadLater setTitle={setTitle} searchQuery={searchQuery} {...props} />
+                }}
+              />
+              <Route
+                exact path={'/:id'}
                 render={props => {
                   return <Feed setTitle={setTitle} searchQuery={searchQuery} {...props} />
                 }}
               />
+            </Switch>
 
               {/* <Paper className={classes.paper}>
                 <Feed id="609d2191006d6273628ae790" />

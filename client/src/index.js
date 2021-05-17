@@ -12,9 +12,13 @@ const lightTheme = createMuiTheme();
 const darkTheme = createMuiTheme({
   palette: {
     type: "dark",
-    primary: {
-      main: '#303030',
-    },
+    // primary: {
+    //   main: '#000000',
+    //   // background: {
+    //   //   default: '#000000',
+    //   //   paper: '#000000',
+    //   // },
+    // },
   }
 });
 
@@ -27,9 +31,10 @@ axios.get('/api/auth/loggedin')
         darkTheme={darkTheme}
         followSystem="true"
         persist="true"
+        appId="paperboy"
       >     
         <BrowserRouter>
-          <App user={user} />
+          <App id="paperboy" user={user} />
         </BrowserRouter>
       </ThemeSwitcherProvider>,
       document.getElementById('root')

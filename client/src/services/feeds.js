@@ -125,4 +125,34 @@ const getRead = (id) => {
     })
 }
 
-export { addFeed, getFeed, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead, markAllRead, getRead };
+const getAllRead = () => {
+  return axios.get('/api/feeds/read')
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
+      return err;
+    })
+}
+
+const getReadStarred = () => {
+  return axios.get('/api/feeds/read-starred')
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
+      return err;
+    })
+}
+
+const getReadLater = (id) => {
+  return axios.get('/api/feeds/read-later')
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
+      return err;
+    })
+}
+
+export { addFeed, getFeed, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead, markAllRead, getRead, getAllRead, getReadStarred, getReadLater };

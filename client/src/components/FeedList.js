@@ -19,19 +19,18 @@ import AddIcon from '@material-ui/icons/Add';
 import AddFeed from './AddFeed';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import BookmarksIcon from '@material-ui/icons/Bookmarks';
+import IconButton from '@material-ui/core/IconButton';
 
-// const useStyles = makeStyles((theme) => ({
-//   small: {
-//     width: theme.spacing(3),
-//     height: theme.spacing(3),
-//   },
-//   menuButton: {
-//     marginRight: 36,
-//   },
-// }));
+const useStyles = makeStyles((theme) => ({
+  menuButton: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
+}));
 
 export default function FeedList() {
-  // const classes = useStyles();
+  const classes = useStyles();
   const [feeds, setFeeds] = useState([]);
 
   const updateFeeds = () => {
@@ -52,6 +51,20 @@ export default function FeedList() {
   if (!feeds) return <LinearProgress />
   return (
     <List>
+      <Tooltip title="Read later" placement="right">
+        <ListItem button component={NavLink} to={`/read-later`} activeClassName="Mui-selected">
+          <ListItemIcon className={classes.menuButton}>
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="read later"
+            >
+              <BookmarksIcon/>
+            </IconButton>
+          </ListItemIcon>
+          <ListItemText primary="Read later" />
+        </ListItem>
+      </Tooltip>
       {feeds.map(feed => {
         return (
           <Tooltip title={feed.title} key={feed._id} placement="right">

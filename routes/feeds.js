@@ -133,6 +133,49 @@ router.get('/read', (req, res) => {
     })
 });
 
+router.get('/read-starred', (req, res) => {
+  User.findById(req.user._id)
+    .then(user => {
+      Item.find({ $and: [ { _id: [ ...user.read ] }, { _id: [ ...user.starred ] } ] })
+          .then(readItems => {
+            readItems.sort((a, b) => b.isoDate - a.isoDate);
+            const ids = readItems.map(item => item._id);
+            res.status(200).json(ids);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+    })
+    .catch(err => {
+      res.json(err);
+    })
+});
+
+router.get('/read-later', (req, res) => {
+  User.findById(req.user._id)
+    .then(user => {
+      Item.find({ _id: [ ...user.starred ] })
+          .populate({
+            path: 'feed',
+            select: 'title'
+          })
+          .then(starredItems => {
+            if (!starredItems) {
+              res.status(400).json({ message: 'No starred items' })
+            } else {
+              starredItems.sort((a, b) => b.isoDate - a.isoDate);
+              res.status(200).json(starredItems);
+            }
+          })
+          .catch(err => {
+            res.json(err);
+          })
+    })
+    .catch(err => {
+      res.json(err);
+    })
+});
+
 router.get('/:id/read', (req, res) => {
   User.findById(req.user._id)
     .then(user => {

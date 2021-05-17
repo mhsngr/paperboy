@@ -135,10 +135,14 @@ export default function FeedItem(props) {
             <ListItemText
               onClick={handleClick}
               primary={
+                <>
                 <div className={classes.feedHeader}>
                 <Typography color={props.read ? 'textSecondary' : 'textPrimary' }>{props.item.title}</Typography>
+                
                 <span><Typography variant="caption" color={props.read ? 'textSecondary' : 'textPrimary' }>{getAge(props.item.isoDate)}</Typography></span>
                 </div>
+                <Typography variant="caption" color={props.read ? 'textSecondary' : 'textPrimary' }>{props.feedTitle}</Typography>
+                </>
               }
             />
           </ListItem>

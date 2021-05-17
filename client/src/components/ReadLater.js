@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFeed, getStarred, starItem, unstarItem, markRead, unmarkRead, markAllRead, getRead } from '../services/feeds';
+import { getStarred, starItem, unstarItem, markRead, unmarkRead, markAllRead, getReadStarred, getAllRead, getReadLater } from '../services/feeds';
 import { makeStyles } from '@material-ui/core/styles';
 // import List from '@material-ui/core/List';
 // import ListItem from '@material-ui/core/ListItem';
@@ -9,7 +9,7 @@ import { makeStyles } from '@material-ui/core/styles';
 // import InboxIcon from '@material-ui/icons/Inbox';
 // import DraftsIcon from '@material-ui/icons/Drafts';
 import LinearProgress from '@material-ui/core/LinearProgress';
-import FeedItem from './FeedItem';
+import ReadLaterItem from './ReadLaterItem';
 import Typography from '@material-ui/core/Typography';
 import List from '@material-ui/core/List';
 import Link from '@material-ui/core/Link';
@@ -79,7 +79,7 @@ export default function Feed(props) {
       .then(response => {
         if (response.message) console.log(response.message);
         else {
-          getRead(feed._id)
+          getReadStarred()
             .then(fetchedReadItems => {
               setReadItems(fetchedReadItems);
             })
@@ -99,7 +99,7 @@ export default function Feed(props) {
       .then(response => {
         if (response.message) console.log(response.message);
         else {
-          getRead(feed._id)
+          getReadStarred()
             .then(fetchedReadItems => {
               setReadItems(fetchedReadItems);
             })
@@ -116,7 +116,7 @@ export default function Feed(props) {
   const handleUnmarkRead = (id) => {
     unmarkRead(id)
       .then(() => {
-        getRead(feed._id)
+        getReadStarred()
           .then(fetchedReadItems => {
             setReadItems(fetchedReadItems);
           })
@@ -130,19 +130,19 @@ export default function Feed(props) {
   }
 
   const handleRefresh = () => {
+    props.setTitle('Read later')
     setFeed(null);
     setFilteredItems(null);
     getStarred()
       .then(fetchedStarredItems => {
         setStarredItems(fetchedStarredItems);
-        getFeed(props.match.params.id)
-          .then(fetchedFeed => {
-            getRead(fetchedFeed._id)
+        getReadLater()
+          .then(items => {
+            getReadStarred()
               .then(fetchedReadItems => {
                 setReadItems(fetchedReadItems);
-                setFeed(fetchedFeed);
-                setFilteredItems(fetchedFeed.feedItems);
-                props.setTitle(fetchedFeed.title)
+                setFeed(items);
+                setFilteredItems(items);
               })
               .catch(err => {
                 console.log(err);
@@ -163,24 +163,17 @@ export default function Feed(props) {
 
   useEffect(() => {
     if (!feed) return;
-    const filtered = props.searchQuery ? feed.feedItems.filter(item => item.title.toLowerCase().includes(props.searchQuery.toLowerCase())) : feed.feedItems;
+    const filtered = props.searchQuery ? feed.filter(item => item.title.toLowerCase().includes(props.searchQuery.toLowerCase())) : feed;
     setFilteredItems(filtered);
   }, [props.searchQuery])
+
   if (!filteredItems) return <LinearProgress />
   return (
     <div className={classes.root}>
       <Container component="div" className={classes.feedDetails}>
         <div className={classes.feedHeader}>
           <Typography variant="h4">
-            <Link
-              href={feed.link}
-              target="_blank"
-              rel="noreferrer"
-              color="inherit"
-              underline="none"
-            >
-              {feed.title}
-            </Link>
+            Read later
           </Typography>
           <div className={classes.feedToolbar}>
             {(filteredItems.length - readItems.length) === 0 ?
@@ -232,9 +225,9 @@ export default function Feed(props) {
       <List  className={classes.feedList}>
         {filteredItems.map(item => {
           return (
-            <FeedItem
+            <ReadLaterItem
               key={item._id}
-              feedTitle={feed.title}
+              feedTitle={item.feed.title}
               item={item}
               handleStarItem={handleStarItem}
               handleUnstarItem={handleUnstarItem}
