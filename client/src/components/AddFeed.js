@@ -20,6 +20,8 @@ import AddIcon from '@material-ui/icons/Add';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
+import Popover from '@material-ui/core/Popover';
+import Alert from '@material-ui/lab/Alert';
 
 const useStyles = makeStyles((theme) => ({
   appBar: {
@@ -62,9 +64,9 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
     transition: theme.transitions.create('width'),
     width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: '20ch',
-    },
+    // [theme.breakpoints.up('md')]: {
+    //   width: '20ch',
+    // },
   },
   menuButton: {
     display: 'flex',
@@ -82,6 +84,9 @@ export default function AddFeed(props) {
   const [feeds, setFeeds] = useState(null);
   const [filteredFeeds, setFilteredFeeds] = useState(null);
   const [feedUrl, setFeedUrl] = useState('');
+  const [message, setMessage] = useState('');
+  const [anchorEl, setAnchorEl] = useState(null);
+  const searchRef = React.useRef();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -97,11 +102,27 @@ export default function AddFeed(props) {
   };
 
   const handleClose = () => {
-    props.setFeeds(null);
     setOpen(false);
+    setAnchorEl(null);
+    setMessage('');
+  };
+
+  const handleAddFeed = (event) => {
+    setAnchorEl(searchRef.current);
+    // props.setFeeds(null);
+    // setOpen(false);
     addFeed(feedUrl)
-      .then(() => {
-        props.updateFeeds();
+      .then(response => {
+        if (response.message) {
+          setMessage(response.message);
+        }
+        else {
+          setMessage('');
+          setAnchorEl(null);
+          props.setFeeds(null);
+          setOpen(false);
+          props.updateFeeds();
+        }
       })
       .catch(err => {
         console.log(err);
@@ -113,18 +134,18 @@ export default function AddFeed(props) {
     const filtered = e.target.value ? feeds.filter(feed => feed.title.toLowerCase().includes(e.target.value.toLowerCase()) || feed.feedUrl.toLowerCase().includes(e.target.value.toLowerCase())) : feeds;
     setFilteredFeeds(filtered);
   }
-
+  
   if (!filteredFeeds) return (
     <Tooltip title="Add new feed" placement="right">
       <ListItem button onClick={handleClickOpen}>
         <ListItemIcon className={classes.menuButton}>
-        <IconButton
-          edge="start"
-          color="inherit"
-          aria-label="add new feed"
-        >
-          <AddIcon/>
-        </IconButton>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="add new feed"
+          >
+            <AddIcon/>
+          </IconButton>
         </ListItemIcon>
         <ListItemText primary="Add new feed" />
       </ListItem>
@@ -134,10 +155,14 @@ export default function AddFeed(props) {
     <div>
       <Tooltip title="Add new feed" placement="right">
         <ListItem button onClick={handleClickOpen}>
-          <ListItemIcon>
-            <Avatar variant="rounded">
+          <ListItemIcon className={classes.menuButton}>
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="add new feed"
+            >
               <AddIcon/>
-            </Avatar>
+            </IconButton>
           </ListItemIcon>
           <ListItemText primary="Add new feed" />
         </ListItem>
@@ -151,7 +176,7 @@ export default function AddFeed(props) {
             {/* <Typography variant="h6" className={classes.title}>
               Add new Feed
             </Typography> */}
-            <div className={classes.search}>
+            <div className={classes.search} ref={searchRef}>
               <div className={classes.searchIcon}>
                 <SearchIcon />
               </div>
@@ -167,9 +192,25 @@ export default function AddFeed(props) {
                 fullWidth
               />
             </div>
-            <IconButton autoFocus color="inherit" onClick={handleClose}>
+            <IconButton autoFocus color="inherit" onClick={handleAddFeed}>
               <AddIcon/>
             </IconButton>
+            <Popover
+              id='error-popover'
+              open={!!message}
+              anchorEl={anchorEl}
+              onClose={() => setMessage('')}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+              }}
+            >
+              <Alert severity="error">{message}</Alert>
+            </Popover>
           </Toolbar>
         </AppBar>
         <List>

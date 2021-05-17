@@ -18,6 +18,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import AddIcon from '@material-ui/icons/Add';
 import AddFeed from './AddFeed';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 
 // const useStyles = makeStyles((theme) => ({
 //   small: {
@@ -55,9 +56,9 @@ export default function FeedList() {
         return (
           <Tooltip title={feed.title} key={feed._id} placement="right">
             <ListItem button component={NavLink} to={`/${feed._id}`} activeClassName="Mui-selected">
-              <ListItemIcon>
+              <ListItemAvatar>
                 <Avatar variant="rounded" src={getIcon(feed.link)} alt={feed.title} />
-              </ListItemIcon>
+              </ListItemAvatar>
               <ListItemText primary={feed.title} />
             </ListItem>
           </Tooltip>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import { getAge } from '../services/feeds';
 import Container from '@material-ui/core/Container';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -22,6 +23,7 @@ import TurnedInIcon from '@material-ui/icons/TurnedIn';
 import TurnedInNotIcon from '@material-ui/icons/TurnedInNot';
 import Tooltip from '@material-ui/core/Tooltip';
 
+
 const useStyles = makeStyles((theme) => ({
   // root: {
   //   width: '100%',
@@ -30,6 +32,10 @@ const useStyles = makeStyles((theme) => ({
   // },
   feedItem: {
     paddingLeft: theme.spacing(4),
+  },
+  feedHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
   },
   // title: {
   //   "&:hover": {
@@ -68,7 +74,7 @@ export default function FeedItem(props) {
     //   </AccordionDetails>
     // </Accordion>
     <>
-      <ListItem button >
+      <ListItem button dense>
         <ListItemIcon>
           <Tooltip title="Read later">
           {props.starred ?
@@ -92,7 +98,15 @@ export default function FeedItem(props) {
           )}
           </Tooltip>
         </ListItemIcon>
-         <ListItemText  onClick={handleClick} primary={props.item.title} />
+        <ListItemText
+          onClick={handleClick}
+          primary={
+            <div className={classes.feedHeader}>
+            <span>{props.item.title}</span>
+            <span>{getAge(props.item.isoDate)}</span>
+            </div>
+          }
+        />
        </ListItem>
        <Collapse in={open} timeout="auto" unmountOnExit>
          <Container component="div" className={classes.feedItem}>

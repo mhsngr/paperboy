@@ -5,14 +5,30 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import axios from 'axios';
+import { ThemeSwitcherProvider } from "mui-theme-switcher";
+import { createMuiTheme } from "@material-ui/core";
+
+const lightTheme = createMuiTheme();
+const darkTheme = createMuiTheme({
+  palette: {
+    type: "dark"
+  }
+});
 
 axios.get('/api/auth/loggedin')
   .then(response => {
     const user = response.data;
     ReactDOM.render(
-      <BrowserRouter>
-        <App user={user} />
-      </BrowserRouter>,
+      <ThemeSwitcherProvider
+        lightTheme={lightTheme}
+        darkTheme={darkTheme}
+        followSystem="true"
+        persist="true"
+      >     
+        <BrowserRouter>
+          <App user={user} />
+        </BrowserRouter>
+      </ThemeSwitcherProvider>,
       document.getElementById('root')
     );
   })

@@ -6,7 +6,7 @@ const addFeed = (url) => {
       return response.data;
     })
     .catch(err => {
-      return err;
+      return err.response.data;
     })
 }
 
@@ -43,6 +43,16 @@ const getAllFeeds = () => {
 const getIcon = (link) => {
   const url = new URL(link);
   return `https://logo.clearbit.com/${url.hostname}`
+}
+
+const getAge = (date) => {
+  const age = Date.now() - new Date(date);
+  if (Math.floor(age / (1000 * 60 * 60 * 24 * 365 )) > 0) return `${Math.floor(age / (1000 * 60 * 60 * 24 * 365 ))} y`;
+  if (Math.floor(age / (1000 * 60 * 60 * 24 * 7 ))) return `${Math.floor(age / (1000 * 60 * 60 * 24 * 7 ))} w`;
+  if (Math.floor(age / (1000 * 60 * 60 * 24 ))) return `${Math.floor(age / (1000 * 60 * 60 * 24))} d`;
+  if (Math.floor(age / (1000 * 60 * 60 ))) return `${Math.floor(age / (1000 * 60 * 60))} h`;
+  if (Math.floor(age / (1000 * 60))) return `${Math.floor(age / (1000 * 60))} min`;
+  if (Math.floor(age / (1000))) return `${Math.floor(age / (1000))} s`;
 }
 
 const starItem = (id) => {
@@ -95,4 +105,4 @@ const unmarkRead = (id) => {
     })
 }
 
-export { addFeed, getFeed, getUserFeeds, getAllFeeds, getIcon, starItem, unstarItem, getStarred, markRead, unmarkRead };
+export { addFeed, getFeed, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead };

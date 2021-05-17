@@ -35,22 +35,12 @@ import SearchIcon from '@material-ui/icons/Search';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import Avatar from '@material-ui/core/Avatar';
+import { useThemeSwitcher } from "mui-theme-switcher";
+import WbSunnyIcon from '@material-ui/icons/WbSunny';
+import Brightness3Icon from '@material-ui/icons/Brightness3';
 // import { mainListItems, secondaryListItems } from './listItems';
 // import Deposits from './Deposits';
 // import Orders from './Orders';
-
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {'Copyright © '}
-      <Link color="inherit" href="https://material-ui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
 
 const drawerWidth = 240;
 
@@ -175,6 +165,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Reader(props) {
   const classes = useStyles();
+  const { dark, toggleDark } = useThemeSwitcher();
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   // const [userFeeds, setUserFeeds] = useState([]);
@@ -189,7 +180,7 @@ export default function Reader(props) {
     signout()
       .then(() => {
         props.setUser(null);
-        props.history.push('/');
+        props.history.push('/signin');
       })
   };
 
@@ -292,6 +283,9 @@ export default function Reader(props) {
               onChange={search}
             />
           </div>
+          <IconButton onClick={toggleDark}>
+            {dark ? <WbSunnyIcon /> : <Brightness3Icon />}
+          </IconButton>
           <IconButton
               edge="end"
               // size="small"

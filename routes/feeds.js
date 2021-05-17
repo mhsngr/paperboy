@@ -60,7 +60,7 @@ router.post("/", (req, res) => {
             })
           })
           .catch(err => {
-            res.json(err);
+            return res.status(400).json({ err, message: 'Invalid feed URL' })
           })
       }
     })
@@ -70,7 +70,12 @@ router.get('/', (req, res) => {
   User.findById(req.user._id)
     .populate('feeds')
     .then(user => {
-       res.status(200).json(user.feeds)
+       user.feeds.sort((a, b) => {
+         if (a.title.toLowerCase() < b.title.toLowerCase()) return -1;
+         if (a.title.toLowerCase() > b.title.toLowerCase()) return 1;
+         return 0;
+       })
+       res.status(200).json(user.feeds);
     })
     .catch(err => {
       res.json(err);
@@ -80,7 +85,12 @@ router.get('/', (req, res) => {
 router.get('/all', (req, res) => {
   Feed.find()
     .then(feeds => {
-       res.status(200).json(feeds)
+      feeds.sort((a, b) => {
+        if (a.title.toLowerCase() < b.title.toLowerCase()) return -1;
+        if (a.title.toLowerCase() > b.title.toLowerCase()) return 1;
+        return 0;
+      })
+      res.status(200).json(feeds);
     })
     .catch(err => {
       res.json(err);
@@ -90,10 +100,9 @@ router.get('/all', (req, res) => {
 router.get('/starred', (req, res) => {
   User.findById(req.user._id)
     .then(user => {
-      console.log(user.starred);
       Item.find({ _id: [ ...user.starred ] })
           .then(starredItems => {
-            console.log(starredItems);
+            starredItems.sort((a, b) => b.isoDate - a.isoDate);
             const ids = starredItems.map(item => item._id);
             res.status(200).json(ids);
           })
@@ -117,6 +126,7 @@ router.get('/:id', (req, res) => {
             Feed.findById(updatedFeed.id)
               .populate('feedItems')
               .then(populatedFeed => {
+                populatedFeed.feedItems.sort((a, b) => b.isoDate - a.isoDate);
                 res.status(200).json(populatedFeed)
               })
               .catch(err => {
@@ -166,7 +176,6 @@ router.get('/item/:id', (req, res) => {
 });
 
 router.put('/item/:id', (req, res) => {
-  console.log(req.body);
   if (req.body.starred) {
     User.findByIdAndUpdate(req.user._id, { $push: { starred: req.params.id } }, { new: true })
     .then(user => {
