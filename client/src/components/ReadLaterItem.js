@@ -56,13 +56,17 @@ export default function FeedItem(props) {
         <ListItem dense onClick={handleClick}>
           <ListItemText />
           {props.read ?
-            <IconButton size="small">
-              <CloseIcon />
-            </IconButton>
+            <Tooltip title="Close">
+              <IconButton size="small">
+                <CloseIcon />
+              </IconButton>
+            </Tooltip>
             :
-            <IconButton size="small" onClick={() => props.handleMarkRead(props.item._id)}>
-              <DoneIcon />
-            </IconButton>
+            <Tooltip title="Mark read">
+              <IconButton size="small" onClick={() => props.handleMarkRead(props.item._id)}>
+                <DoneIcon />
+              </IconButton>
+            </Tooltip>
           }
         </ListItem>
       ) : (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFeed, getStarred, starItem, unstarItem, markRead, unmarkRead, markAllRead, getRead } from '../services/feeds';
+import { getFeed, getFeedItems, getStarred, starItem, unstarItem, markRead, unmarkRead, markAllRead, getRead } from '../services/feeds';
 import { makeStyles } from '@material-ui/core/styles';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import FeedItem from './FeedItem';
@@ -51,11 +51,14 @@ export default function Feed(props) {
   const [hasMore, setHasMore] = useState(true);
 
   const loadMoreItems = () => {
-    if (filteredItems.length - loadedItems.length > 20) setLoadedItems(loadedItems.concat(filteredItems.slice(loadedItems.length, loadedItems.length + 20)));
-    else {
-      setHasMore(false);
-      setLoadedItems(filteredItems);
-    }
+    getFeedItems(feed._id, props.searchQuery, loadedItems.length, 40)
+      .then(newLoadedItems => {
+        if (newLoadedItems.length === 0) setHasMore(false);
+        else setLoadedItems(loadedItems.concat(newLoadedItems));
+      })
+      .catch(err => {
+        console.log(err);
+      })
   }
 
   const handleStarItem = (id) => {
@@ -135,20 +138,25 @@ export default function Feed(props) {
   }
 
   const handleRefresh = () => {
-    setFeed(null);
-    setFilteredItems(null);
-    getStarred()
-      .then(fetchedStarredItems => {
-        setStarredItems(fetchedStarredItems);
-        getFeed(props.match.params.id)
-          .then(fetchedFeed => {
-            getRead(fetchedFeed._id)
-              .then(fetchedReadItems => {
-                setReadItems(fetchedReadItems);
-                setFeed(fetchedFeed);
-                setLoadedItems(fetchedFeed.feedItems.slice(0,40));
-                setFilteredItems(fetchedFeed.feedItems);
-                props.setTitle(fetchedFeed.title)
+    setLoadedItems(null);
+    setHasMore(true);
+    getFeed(props.match.params.id)
+      .then(fetchedFeed => {
+        setFeed(fetchedFeed);
+        props.setTitle(fetchedFeed.title)
+        getRead(fetchedFeed._id)
+          .then(fetchedReadItems => {
+            setReadItems(fetchedReadItems);
+            getStarred()
+              .then(fetchedStarredItems => {
+                setStarredItems(fetchedStarredItems);
+                getFeedItems(fetchedFeed._id, props.searchQuery, 0, 40)
+                  .then(feedItems => {
+                    setLoadedItems(feedItems);
+                  })
+                  .catch(err => {
+                    console.log(err);
+                  })
               })
               .catch(err => {
                 console.log(err);
@@ -165,16 +173,16 @@ export default function Feed(props) {
 
   useEffect(() => {
     handleRefresh();
-  }, [props.match.params.id])
+  }, [props.match.params.id, props.searchQuery])
 
-  useEffect(() => {
-    if (!feed) return;
-    const filtered = props.searchQuery ? feed.feedItems.filter(item => item.title.toLowerCase().includes(props.searchQuery.toLowerCase())) : feed.feedItems;
-    setLoadedItems(filtered.slice(0,40));
-    setFilteredItems(filtered);
-  }, [props.searchQuery])
+  // useEffect(() => {
+  //   if (!feed) return;
+  //   const filtered = props.searchQuery ? feed.feedItems.filter(item => item.title.toLowerCase().includes(props.searchQuery.toLowerCase())) : feed.feedItems;
+  //   setLoadedItems(filtered.slice(0,40));
+  //   setFilteredItems(filtered);
+  // }, [props.searchQuery])
 
-  if (!filteredItems) return <LinearProgress />
+  if (!loadedItems) return <LinearProgress />
 
   return (
     <div id="feed" className={classes.root}>
@@ -192,7 +200,7 @@ export default function Feed(props) {
             </Link>
           </Typography>
           <div className={classes.feedToolbar}>
-            {(filteredItems.length - readItems.length) === 0 ?
+            {(loadedItems.length - readItems.length) === 0 ?
               <Tooltip title="All Read">
                 <IconButton>
                   <DoneAllIcon/>
@@ -205,12 +213,12 @@ export default function Feed(props) {
                     vertical: 'top',
                     horizontal: 'left',
                   }}
-                  badgeContent={filteredItems.length - readItems.length}
+                  badgeContent={loadedItems.length - readItems.length}
                   color="primary"
                   overlap="circle"
                   max={999}
                 >
-                  <IconButton onClick={() => handleMarkAllRead(filteredItems)}>
+                  <IconButton onClick={() => handleMarkAllRead(loadedItems)}>
                     <DoneIcon/>
                   </IconButton>
                 </Badge>
@@ -232,8 +240,8 @@ export default function Feed(props) {
           ) : <></>}
           {feed.category ? 
           (
-            <Typography variant="subtitle2" paragraph>Category: {feed.category.join(', ')}, {feed.feedItems.length} articles</Typography>
-          ) : <Typography variant="subtitle2" paragraph>{filteredItems.length} articles</Typography>}
+            <Typography variant="subtitle2" paragraph>Category: {feed.category.join(', ')}, {loadedItems.length} articles</Typography>
+          ) : <Typography variant="subtitle2" paragraph>{loadedItems.length} articles</Typography>}
       </Container>
       <Divider />
       <List className={classes.feedList}>

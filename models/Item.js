@@ -24,6 +24,8 @@ const itemSchema = new Schema({
   }
 });
 
+itemSchema.index({ title: 'text', content: 'text', 'content:encoded': 'text' });
+
 const Item = model("Item", itemSchema);
 
 module.exports = Item;

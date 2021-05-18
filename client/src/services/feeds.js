@@ -11,7 +11,17 @@ const addFeed = (url) => {
 }
 
 const getFeed = (id) => {
-  return axios.get(`/api/feeds/${id}`)
+  return axios.get(`/api/feeds?id=${id}`)
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
+      return err;
+    })
+}
+
+const getFeedItems = (id, query, skip, limit) => {
+  return axios.get(`/api/feeds?id=${id}&q=${query}&skip=${skip}&limit=${limit}`)
     .then(response => {
       return response.data;
     })
@@ -165,4 +175,4 @@ const unfollowFeed = (id) => {
     })
 }
 
-export { addFeed, getFeed, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead, markAllRead, getRead, getAllRead, getReadStarred, getReadLater, unfollowFeed };
+export { addFeed, getFeed, getFeedItems, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead, markAllRead, getRead, getAllRead, getReadStarred, getReadLater, unfollowFeed };

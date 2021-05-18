@@ -66,24 +66,89 @@ router.post("/", (req, res) => {
     })
 });
 
+// router.get('/', (req, res) => {
+//   User.findById(req.user._id)
+//     .populate('feeds')
+//     .then(user => {
+//        user.feeds.sort((a, b) => {
+//          if (a.title.toLowerCase() < b.title.toLowerCase()) return -1;
+//          if (a.title.toLowerCase() > b.title.toLowerCase()) return 1;
+//          return 0;
+//        })
+//        res.status(200).json(user.feeds);
+//     })
+//     .catch(err => {
+//       res.json(err);
+//     })
+// });
+
 router.get('/', (req, res) => {
-  User.findById(req.user._id)
-    .populate('feeds')
-    .then(user => {
-       user.feeds.sort((a, b) => {
-         if (a.title.toLowerCase() < b.title.toLowerCase()) return -1;
-         if (a.title.toLowerCase() > b.title.toLowerCase()) return 1;
-         return 0;
-       })
-       res.status(200).json(user.feeds);
-    })
-    .catch(err => {
-      res.json(err);
-    })
+  if (req.query.id && req.query.limit && req.query.skip && req.query.q) {
+    Item.find({ $and: [ { feed: req.query.id }, { $text : { $search : req.query.q } } ] })
+    // Item.find({ $and: [ { feed: req.query.id }, { title : { $regex : req.query.q, $options: 'i'  } } ] })
+      .sort({ isoDate: -1 })
+      .skip(+req.query.skip)
+      .limit(+req.query.limit)
+      .then(items => {
+        res.status(200).json(items);
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id && req.query.limit && req.query.skip){
+    Item.find({ feed: req.query.id })
+      .sort({ isoDate: -1 })
+      .skip(+req.query.skip)
+      .limit(+req.query.limit)
+      .then(items => {
+        res.status(200).json(items);
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id && req.query.limit){
+    Item.find({ feed: req.query.id })
+      .sort({ isoDate: -1 })
+      .limit(+req.query.limit)
+      .then(items => {
+        res.status(200).json(items);
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id) {
+    Feed.findById(req.query.id)
+      .select('-feedItems')
+      .then(feed => {
+        res.status(200).json(feed);
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else {
+    User.findById(req.user._id)
+      .select('feeds')
+      .populate({
+        path: 'feeds',
+        select: '-feedItems'
+      })
+      .then(user => {
+        user.feeds.sort((a, b) => {
+          if (a.title.toLowerCase() < b.title.toLowerCase()) return -1;
+          if (a.title.toLowerCase() > b.title.toLowerCase()) return 1;
+          return 0;
+        })
+        res.status(200).json(user.feeds);
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  }
 });
 
 router.get('/all', (req, res) => {
   Feed.find()
+    .select('-feedItems')
     .then(feeds => {
       feeds.sort((a, b) => {
         if (a.title.toLowerCase() < b.title.toLowerCase()) return -1;
@@ -100,15 +165,16 @@ router.get('/all', (req, res) => {
 router.get('/starred', (req, res) => {
   User.findById(req.user._id)
     .then(user => {
-      Item.find({ _id: [ ...user.starred ] })
-          .then(starredItems => {
-            starredItems.sort((a, b) => b.isoDate - a.isoDate);
-            const ids = starredItems.map(item => item._id);
-            res.status(200).json(ids);
-          })
-          .catch(err => {
-            res.json(err);
-          })
+      res.status(200).json(user.starred);
+      // Item.find({ _id: [ ...user.starred ] })
+      //     .then(starredItems => {
+      //       starredItems.sort((a, b) => b.isoDate - a.isoDate);
+      //       const ids = starredItems.map(item => item._id);
+      //       res.status(200).json(ids);
+      //     })
+      //     .catch(err => {
+      //       res.json(err);
+      //     })
     })
     .catch(err => {
       res.json(err);
@@ -118,15 +184,16 @@ router.get('/starred', (req, res) => {
 router.get('/read', (req, res) => {
   User.findById(req.user._id)
     .then(user => {
-      Item.find({ _id: [ ...user.read ] })
-          .then(readItems => {
-            readItems.sort((a, b) => b.isoDate - a.isoDate);
-            const ids = readItems.map(item => item._id);
-            res.status(200).json(ids);
-          })
-          .catch(err => {
-            res.json(err);
-          })
+      res.status(200).json(user.read);
+      // Item.find({ _id: [ ...user.read ] })
+      //     .then(readItems => {
+      //       readItems.sort((a, b) => b.isoDate - a.isoDate);
+      //       const ids = readItems.map(item => item._id);
+      //       res.status(200).json(ids);
+      //     })
+      //     .catch(err => {
+      //       res.json(err);
+      //     })
     })
     .catch(err => {
       res.json(err);
