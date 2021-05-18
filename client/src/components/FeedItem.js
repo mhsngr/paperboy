@@ -8,16 +8,6 @@ import Typography from '@material-ui/core/Typography';
 import ListItemText from '@material-ui/core/ListItemText';
 import Collapse from '@material-ui/core/Collapse';
 import Divider from '@material-ui/core/Divider';
-// import ListSubheader from '@material-ui/core/ListSubheader';
-// import InboxIcon from '@material-ui/icons/MoveToInbox';
-// import DraftsIcon from '@material-ui/icons/Drafts';
-// import SendIcon from '@material-ui/icons/Send';
-// import ExpandLess from '@material-ui/icons/ExpandLess';
-// import ExpandMore from '@material-ui/icons/ExpandMore';
-// import StarBorder from '@material-ui/icons/StarBorder';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
 import IconButton from '@material-ui/core/IconButton';
 import TurnedInIcon from '@material-ui/icons/TurnedIn';
 import TurnedInNotIcon from '@material-ui/icons/TurnedInNot';
@@ -28,14 +18,9 @@ import CloseIcon from '@material-ui/icons/Close';
 import Link from '@material-ui/core/Link';
 import DOMPurify from 'dompurify';
 import DoneIcon from '@material-ui/icons/Done';
-
+import Highlighter from "react-highlight-words";
 
 const useStyles = makeStyles((theme) => ({
-  // root: {
-  //   width: '100%',
-  //   maxWidth: 360,
-  //   backgroundColor: theme.palette.background.paper,
-  // },
   feedItem: {
     padding: theme.spacing(0,9,3,9),
   },
@@ -49,100 +34,78 @@ const useStyles = makeStyles((theme) => ({
   toolbar: {
     paddingBottom: theme.spacing(2),
   },
-  // title: {
-  //   "&:hover": {
-  //     backgroundColor: theme.palette.action.hover,
-  //   }
-  // }
+  highlight: {
+    color: 'inherit',
+    backgroundColor: theme.palette.primary.main,
+  },
 }));
 
 export default function FeedItem(props) {
+
   const classes = useStyles();
+
   const [open, setOpen] = useState(false);
 
   const handleClick = () => {
     setOpen(!open);
   };
 
-  // const renderCategories = categories => {
-  //   const text = categories.join(', ')
-  //   console.log(text)
-  //   // const trimmed = text.slice(0, -1);
-  //   // console.log(trimmed)
-  //   // return trimmed;
-  // }
   return (
-    // <Accordion>
-    //   <AccordionSummary className={classes.title}>
-    //     <Typography className={classes.heading}>{props.item.title}</Typography>
-    //   </AccordionSummary>
-    //   <AccordionDetails>
-    //     {props.starred ?
-    //       (
-    //         <IconButton onClick={() => props.handleUnstarItem(props.item._id)}>
-    //           <TurnedInIcon/>
-    //         </IconButton>
-    //       ) :
-    //       (
-    //         <IconButton onClick={() => props.handleStarItem(props.item._id)}>
-    //           <TurnedInNotIcon/>
-    //         </IconButton>
-    //       )}
-    //     <Typography>
-    //       {props.item.content}
-    //     </Typography>
-    //   </AccordionDetails>
-    // </Accordion>
     <>
-        {open ? (
-          <ListItem dense onClick={handleClick}>
-            <ListItemText />
-            {props.read ?
-              <IconButton size="small">
-                <CloseIcon />
+      {open ? (
+        <ListItem dense onClick={handleClick}>
+          <ListItemText />
+          {props.read ?
+            <IconButton size="small">
+              <CloseIcon />
+            </IconButton>
+            :
+            <IconButton size="small" onClick={() => props.handleMarkRead(props.item._id)}>
+              <DoneIcon />
+            </IconButton>
+          }
+        </ListItem>
+      ) : (
+        <ListItem button dense>
+          <ListItemIcon>
+            <Tooltip title="Read later">
+            {props.starred ?
+            (
+              <IconButton
+                size="small"
+                onClick={() => props.handleUnstarItem(props.item._id)}
+              >
+                <TurnedInIcon fontSize="small" color={props.read ? 'disabled' : 'inherit' }/>
               </IconButton>
-              :
-              <IconButton size="small" onClick={() => props.handleMarkRead(props.item._id)}>
-                <DoneIcon />
+            ) :
+            (
+              <IconButton 
+                size="small"
+                onClick={() => props.handleStarItem(props.item._id)}
+              >
+                <TurnedInNotIcon fontSize="small" color={props.read ? 'disabled' : 'inherit' }/>
               </IconButton>
-            }
-          </ListItem>
-        ) : (
-          <ListItem button dense>
-            <ListItemIcon>
-              <Tooltip title="Read later">
-              {props.starred ?
-              (
-                <IconButton
-                  size="small"
-                  aria-label="read later"
-                  onClick={() => props.handleUnstarItem(props.item._id)}
-                >
-                  <TurnedInIcon fontSize="small" />
-                </IconButton>
-              ) :
-              (
-                <IconButton 
-                  size="small"
-                  aria-label="read later"
-                  onClick={() => props.handleStarItem(props.item._id)}
-                >
-                  <TurnedInNotIcon fontSize="small"/>
-                </IconButton>
-              )}
-              </Tooltip>
-            </ListItemIcon>
-            <ListItemText
-              onClick={handleClick}
-              primary={
-                <div className={classes.feedHeader}>
-                <Typography color={props.read ? 'textSecondary' : 'textPrimary' }>{props.item.title}</Typography>
+            )}
+            </Tooltip>
+          </ListItemIcon>
+          <ListItemText
+            onClick={handleClick}
+            primary={
+              <div className={classes.feedHeader}>
+                <Typography color={props.read ? 'textSecondary' : 'textPrimary' }>
+                  <Highlighter
+                    highlightClassName={classes.highlight}
+                    searchWords={[props.searchQuery]}
+                    autoEscape={true}
+                    textToHighlight={props.item.title}
+                  />
+                </Typography>
                 <span><Typography variant="caption" color={props.read ? 'textSecondary' : 'textPrimary' }>{getAge(props.item.isoDate)}</Typography></span>
-                </div>
-              }
-            />
-          </ListItem>
-        )}
+              </div>
+            }
+          />
+        </ListItem>
+      )}
       <Collapse in={open} timeout="auto" unmountOnExit>
         <Container component="div" className={classes.feedItem}>
           <Typography variant="h5" color={props.read ? 'textSecondary' : 'textPrimary' } className={classes.feedItemHeading}>
@@ -154,7 +117,12 @@ export default function FeedItem(props) {
               color="inherit"
               underline="none"
             >
-            {props.item.title}
+              <Highlighter
+                highlightClassName={classes.highlight}
+                searchWords={[props.searchQuery]}
+                autoEscape={true}
+                textToHighlight={props.item.title}
+              />
             </Link>
             :
             <Link
@@ -165,14 +133,19 @@ export default function FeedItem(props) {
               underline="none"
               onClick={() => props.handleMarkRead(props.item._id)}
             >
-            {props.item.title}
+              <Highlighter
+                highlightClassName={classes.highlight}
+                searchWords={[props.searchQuery]}
+                autoEscape={true}
+                textToHighlight={props.item.title}
+              />
             </Link>
             }
           </Typography>
           {props.item.author || props.item.creator ? 
           (
-            <Typography variant="subtitle2" paragraph>{props.feedTitle} by {props.item.author || props.item.creator}, {new Date(props.item.isoDate).toLocaleString()}</Typography>
-          ) : <Typography variant="subtitle2" paragraph>{props.feedTitle}, {new Date(props.item.isoDate).toLocaleString()}</Typography>}
+            <Typography variant="subtitle2" paragraph>{props.feedTitle} by {props.item.author || props.item.creator}, {new Date(props.item.isoDate).toLocaleString()} {props.read ? <Link href='#' color='textSecondary' onClick={() => props.handleUnmarkRead(props.item._id)}>mark unread</Link> : '' }</Typography>
+          ) : <Typography variant="subtitle2" paragraph>{props.feedTitle}, {new Date(props.item.isoDate).toLocaleString()} {props.read ? <Link href='#' color='textSecondary' onClick={() => props.handleUnmarkRead(props.item._id)}>mark unread</Link> : '' }</Typography>}
           {props.item.categories.length > 0 ? 
           (
             <Typography variant="subtitle2" paragraph>Category: {props.item.categories.join(', ')}</Typography>

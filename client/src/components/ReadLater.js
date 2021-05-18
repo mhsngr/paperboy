@@ -235,6 +235,7 @@ export default function Feed(props) {
               handleMarkRead={handleMarkRead}
               handleUnmarkRead={handleUnmarkRead}
               read={readItems.includes(item._id)}
+              {...props}
             />
           )
         })}

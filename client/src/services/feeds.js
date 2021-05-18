@@ -47,12 +47,12 @@ const getIcon = (link) => {
 
 const getAge = (date) => {
   const age = Date.now() - new Date(date);
-  if (Math.floor(age / (1000 * 60 * 60 * 24 * 365 )) > 0) return `${Math.floor(age / (1000 * 60 * 60 * 24 * 365 ))} y`;
-  if (Math.floor(age / (1000 * 60 * 60 * 24 * 7 ))) return `${Math.floor(age / (1000 * 60 * 60 * 24 * 7 ))} w`;
-  if (Math.floor(age / (1000 * 60 * 60 * 24 ))) return `${Math.floor(age / (1000 * 60 * 60 * 24))} d`;
-  if (Math.floor(age / (1000 * 60 * 60 ))) return `${Math.floor(age / (1000 * 60 * 60))} h`;
-  if (Math.floor(age / (1000 * 60))) return `${Math.floor(age / (1000 * 60))} min`;
-  if (Math.floor(age / (1000))) return `${Math.floor(age / (1000))} s`;
+  if (Math.floor(age / (1000 * 60 * 60 * 24 * 365 )) > 0) return `${Math.floor(age / (1000 * 60 * 60 * 24 * 365 ))}y`;
+  if (Math.floor(age / (1000 * 60 * 60 * 24 * 7 ))) return `${Math.floor(age / (1000 * 60 * 60 * 24 * 7 ))}w`;
+  if (Math.floor(age / (1000 * 60 * 60 * 24 ))) return `${Math.floor(age / (1000 * 60 * 60 * 24))}d`;
+  if (Math.floor(age / (1000 * 60 * 60 ))) return `${Math.floor(age / (1000 * 60 * 60))}h`;
+  if (Math.floor(age / (1000 * 60))) return `${Math.floor(age / (1000 * 60))}min`;
+  if (Math.floor(age / (1000))) return `${Math.floor(age / (1000))}s`;
 }
 
 const starItem = (id) => {

@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getFeed, getStarred, starItem, unstarItem, markRead, unmarkRead, markAllRead, getRead } from '../services/feeds';
 import { makeStyles } from '@material-ui/core/styles';
-// import List from '@material-ui/core/List';
-// import ListItem from '@material-ui/core/ListItem';
-// import ListItemIcon from '@material-ui/core/ListItemIcon';
-// import ListItemText from '@material-ui/core/ListItemText';
-// import Divider from '@material-ui/core/Divider';
-// import InboxIcon from '@material-ui/icons/Inbox';
-// import DraftsIcon from '@material-ui/icons/Drafts';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import FeedItem from './FeedItem';
 import OptionsMenu from './OptionsMenu';
@@ -22,7 +15,6 @@ import DoneAllIcon from '@material-ui/icons/DoneAll';
 import Badge from '@material-ui/core/Badge';
 import Tooltip from '@material-ui/core/Tooltip';
 import RefreshIcon from '@material-ui/icons/Refresh';
-import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const useStyles = makeStyles((theme) => ({
@@ -181,7 +173,9 @@ export default function Feed(props) {
     setLoadedItems(filtered.slice(0,40));
     setFilteredItems(filtered);
   }, [props.searchQuery])
+
   if (!filteredItems) return <LinearProgress />
+
   return (
     <div id="feed" className={classes.root}>
       <Container component="div" className={classes.feedDetails}>
@@ -262,6 +256,7 @@ export default function Feed(props) {
                 handleMarkRead={handleMarkRead}
                 handleUnmarkRead={handleUnmarkRead}
                 read={readItems.includes(item._id)}
+                {...props}
               />
             )
           })}
@@ -270,21 +265,3 @@ export default function Feed(props) {
     </div>
   );
 }
-
-{/* <List  className={classes.feedList}>
-{filteredItems.map(item => {
-  return (
-    <FeedItem
-      key={item._id}
-      feedTitle={feed.title}
-      item={item}
-      handleStarItem={handleStarItem}
-      handleUnstarItem={handleUnstarItem}
-      starred={starredItems.includes(item._id)}
-      handleMarkRead={handleMarkRead}
-      handleUnmarkRead={handleUnmarkRead}
-      read={readItems.includes(item._id)}
-    />
-  )
-})}
-</List> */}
