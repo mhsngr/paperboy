@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import '@fontsource/roboto';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { Route, Redirect } from 'react-router-dom';
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
 import Reader from './components/Reader';
-import Feed from './components/Feed';
 
 function App(props) {
-  const [user, setUser] = useState(props.user);
+  const [user, setUser] = React.useState(props.user);
 
   return (
     <>

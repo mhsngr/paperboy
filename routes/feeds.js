@@ -14,7 +14,7 @@ router.post("/", (req, res) => {
         User.findOne({ _id: req.user._id, feeds: existingFeed._id })
           .then(user => {
             if (user) {
-              return res.status(400).json({ message: 'Feed already exists' })
+              return res.status(400).json({ message: 'You already follow this feed' })
             }
             else {
               User.findByIdAndUpdate(req.user._id, { $push: { feeds: existingFeed._id } })
@@ -236,7 +236,7 @@ router.get('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   User.findByIdAndUpdate(req.user._id, { $pull: { feeds: req.params.id } })
     .then(() => {
-      res.status(200).json({ message: 'Feed deleted' });
+      res.status(200).json({ message: 'Feed unfollowed' });
     })
     .catch(err => {
     res.json(err);

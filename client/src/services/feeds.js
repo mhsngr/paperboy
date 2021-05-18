@@ -155,4 +155,14 @@ const getReadLater = (id) => {
     })
 }
 
-export { addFeed, getFeed, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead, markAllRead, getRead, getAllRead, getReadStarred, getReadLater };
+const unfollowFeed = (id) => {
+  return axios.delete(`/api/feeds/${id}`)
+    .then(response => {
+      return response.data;
+    })
+    .catch(err => {
+      return err;
+    })
+}
+
+export { addFeed, getFeed, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead, markAllRead, getRead, getAllRead, getReadStarred, getReadLater, unfollowFeed };

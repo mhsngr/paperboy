@@ -27,6 +27,7 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import Feed from './Feed';
 import FeedList from './FeedList';
 import ReadLater from './ReadLater';
+import ScrollTop from './ScrollTop';
 import Tooltip from '@material-ui/core/Tooltip';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -39,6 +40,8 @@ import Avatar from '@material-ui/core/Avatar';
 import { useThemeSwitcher } from "mui-theme-switcher";
 import WbSunnyIcon from '@material-ui/icons/WbSunny';
 import Brightness3Icon from '@material-ui/icons/Brightness3';
+import Fab from '@material-ui/core/Fab';
+import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 // import { mainListItems, secondaryListItems } from './listItems';
 // import Deposits from './Deposits';
 // import Orders from './Orders';
@@ -171,6 +174,7 @@ export default function Reader(props) {
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   // const [userFeeds, setUserFeeds] = useState([]);
+  const contentRef = React.useRef();
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -323,8 +327,8 @@ export default function Reader(props) {
         <FeedList/>
         <Divider />
       </Drawer>
-      <main className={classes.content}>
-        <div className={classes.appBarSpacer} />
+      <main id="content" className={classes.content}  ref={contentRef}>
+        <div className={classes.appBarSpacer} id="back-to-top-anchor" />
         <Container maxWidth="lg" className={classes.container}>
           {/* <Grid container spacing={3}> */}
             {/* Chart
@@ -355,6 +359,12 @@ export default function Reader(props) {
                 }}
               />
             </Switch>
+
+            <ScrollTop contentRef={contentRef} {...props}>
+              <Fab color="primary" size="small">
+                <KeyboardArrowUpIcon />
+              </Fab>
+            </ScrollTop>
 
               {/* <Paper className={classes.paper}>
                 <Feed id="609d2191006d6273628ae790" />

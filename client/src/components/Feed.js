@@ -10,6 +10,7 @@ import { makeStyles } from '@material-ui/core/styles';
 // import DraftsIcon from '@material-ui/icons/Drafts';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import FeedItem from './FeedItem';
+import OptionsMenu from './OptionsMenu';
 import Typography from '@material-ui/core/Typography';
 import List from '@material-ui/core/List';
 import Link from '@material-ui/core/Link';
@@ -22,11 +23,13 @@ import Badge from '@material-ui/core/Badge';
 import Tooltip from '@material-ui/core/Tooltip';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
-    // maxWidth: 360,
+    // height: `calc(100vh - 64px)`,
+    // overflow: 'auto',
     backgroundColor: theme.palette.background.paper,
   },
   feedDetails: {
@@ -52,6 +55,16 @@ export default function Feed(props) {
   const [filteredItems, setFilteredItems] = useState(null);
   const [starredItems, setStarredItems] = useState(null);
   const [readItems, setReadItems] = useState(null);
+  const [loadedItems, setLoadedItems] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+
+  const loadMoreItems = () => {
+    if (filteredItems.length - loadedItems.length > 20) setLoadedItems(loadedItems.concat(filteredItems.slice(loadedItems.length, loadedItems.length + 20)));
+    else {
+      setHasMore(false);
+      setLoadedItems(filteredItems);
+    }
+  }
 
   const handleStarItem = (id) => {
     starItem(id)
@@ -141,6 +154,7 @@ export default function Feed(props) {
               .then(fetchedReadItems => {
                 setReadItems(fetchedReadItems);
                 setFeed(fetchedFeed);
+                setLoadedItems(fetchedFeed.feedItems.slice(0,40));
                 setFilteredItems(fetchedFeed.feedItems);
                 props.setTitle(fetchedFeed.title)
               })
@@ -164,11 +178,12 @@ export default function Feed(props) {
   useEffect(() => {
     if (!feed) return;
     const filtered = props.searchQuery ? feed.feedItems.filter(item => item.title.toLowerCase().includes(props.searchQuery.toLowerCase())) : feed.feedItems;
+    setLoadedItems(filtered.slice(0,40));
     setFilteredItems(filtered);
   }, [props.searchQuery])
   if (!filteredItems) return <LinearProgress />
   return (
-    <div className={classes.root}>
+    <div id="feed" className={classes.root}>
       <Container component="div" className={classes.feedDetails}>
         <div className={classes.feedHeader}>
           <Typography variant="h4">
@@ -213,9 +228,7 @@ export default function Feed(props) {
               </IconButton>
             </Tooltip>
             <Tooltip title="More options">
-              <IconButton>
-                <MoreHorizIcon/>
-              </IconButton>
+              <OptionsMenu feedId={feed._id} history={props.history} />
             </Tooltip>
           </div>
         </div>
@@ -229,23 +242,49 @@ export default function Feed(props) {
           ) : <Typography variant="subtitle2" paragraph>{filteredItems.length} articles</Typography>}
       </Container>
       <Divider />
-      <List  className={classes.feedList}>
-        {filteredItems.map(item => {
-          return (
-            <FeedItem
-              key={item._id}
-              feedTitle={feed.title}
-              item={item}
-              handleStarItem={handleStarItem}
-              handleUnstarItem={handleUnstarItem}
-              starred={starredItems.includes(item._id)}
-              handleMarkRead={handleMarkRead}
-              handleUnmarkRead={handleUnmarkRead}
-              read={readItems.includes(item._id)}
-            />
-          )
-        })}
+      <List className={classes.feedList}>
+        <InfiniteScroll
+          dataLength={loadedItems.length}
+          next={loadMoreItems}
+          hasMore={hasMore}
+          loader={<LinearProgress />}
+          scrollableTarget="content"
+        >
+          {loadedItems.map(item => {
+            return (
+              <FeedItem
+                key={item._id}
+                feedTitle={feed.title}
+                item={item}
+                handleStarItem={handleStarItem}
+                handleUnstarItem={handleUnstarItem}
+                starred={starredItems.includes(item._id)}
+                handleMarkRead={handleMarkRead}
+                handleUnmarkRead={handleUnmarkRead}
+                read={readItems.includes(item._id)}
+              />
+            )
+          })}
+        </InfiniteScroll>
       </List>
     </div>
   );
 }
+
+{/* <List  className={classes.feedList}>
+{filteredItems.map(item => {
+  return (
+    <FeedItem
+      key={item._id}
+      feedTitle={feed.title}
+      item={item}
+      handleStarItem={handleStarItem}
+      handleUnstarItem={handleUnstarItem}
+      starred={starredItems.includes(item._id)}
+      handleMarkRead={handleMarkRead}
+      handleUnmarkRead={handleUnmarkRead}
+      read={readItems.includes(item._id)}
+    />
+  )
+})}
+</List> */}
