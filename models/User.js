@@ -13,7 +13,7 @@ const userSchema = new Schema({
       unique: true
     }
   ],
-  read: [
+  unread: [
     {
       type: Schema.Types.ObjectId,
       ref: 'Feed',

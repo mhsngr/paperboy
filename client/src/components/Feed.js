@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFeed, getFeedItems, getStarred, starItem, unstarItem, markRead, unmarkRead, markAllRead, getRead } from '../services/feeds';
+import { getFeed, getFeedItems, getStarred, starItem, unstarItem, markRead, unmarkRead, markFeedRead, getUnread } from '../services/feeds';
 import { makeStyles } from '@material-ui/core/styles';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import FeedItem from './FeedItem';
@@ -44,9 +44,8 @@ export default function Feed(props) {
   const classes = useStyles();
 
   const [feed, setFeed] = useState(null);
-  const [filteredItems, setFilteredItems] = useState(null);
   const [starredItems, setStarredItems] = useState(null);
-  const [readItems, setReadItems] = useState(null);
+  const [unreadItems, setUnreadItems] = useState(null);
   const [loadedItems, setLoadedItems] = useState(null);
   const [hasMore, setHasMore] = useState(true);
 
@@ -87,9 +86,9 @@ export default function Feed(props) {
       .then(response => {
         if (response.message) console.log(response.message);
         else {
-          getRead(feed._id)
-            .then(fetchedReadItems => {
-              setReadItems(fetchedReadItems);
+          getUnread(feed._id)
+            .then(fetchedUnreadItems => {
+              setUnreadItems(fetchedUnreadItems);
             })
             .catch(err => {
               console.log(err);
@@ -101,20 +100,10 @@ export default function Feed(props) {
       })
   }
 
-  const handleMarkAllRead = (items) => {
-    const ids = items.map(item => item._id);
-    markAllRead(ids)
+  const handleMarkFeedRead = () => {
+    markFeedRead(feed._id)
       .then(response => {
-        if (response.message) console.log(response.message);
-        else {
-          getRead(feed._id)
-            .then(fetchedReadItems => {
-              setReadItems(fetchedReadItems);
-            })
-            .catch(err => {
-              console.log(err);
-            })
-        }
+        setUnreadItems(response);
       })
       .catch(err => {
         console.log(err);
@@ -124,9 +113,9 @@ export default function Feed(props) {
   const handleUnmarkRead = (id) => {
     unmarkRead(id)
       .then(() => {
-        getRead(feed._id)
-          .then(fetchedReadItems => {
-            setReadItems(fetchedReadItems);
+        getUnread(feed._id)
+          .then(fetchedUnreadItems => {
+            setUnreadItems(fetchedUnreadItems);
           })
           .catch(err => {
             console.log(err);
@@ -144,9 +133,9 @@ export default function Feed(props) {
       .then(fetchedFeed => {
         setFeed(fetchedFeed);
         props.setTitle(fetchedFeed.title)
-        getRead(fetchedFeed._id)
-          .then(fetchedReadItems => {
-            setReadItems(fetchedReadItems);
+        getUnread(fetchedFeed._id)
+          .then(fetchedUnreadItems => {
+            setUnreadItems(fetchedUnreadItems);
             getStarred()
               .then(fetchedStarredItems => {
                 setStarredItems(fetchedStarredItems);
@@ -200,7 +189,7 @@ export default function Feed(props) {
             </Link>
           </Typography>
           <div className={classes.feedToolbar}>
-            {(loadedItems.length - readItems.length) === 0 ?
+            {(unreadItems.length) === 0 ?
               <Tooltip title="All Read">
                 <IconButton>
                   <DoneAllIcon/>
@@ -213,12 +202,12 @@ export default function Feed(props) {
                     vertical: 'top',
                     horizontal: 'left',
                   }}
-                  badgeContent={loadedItems.length - readItems.length}
+                  badgeContent={unreadItems.length}
                   color="primary"
                   overlap="circle"
                   max={999}
                 >
-                  <IconButton onClick={() => handleMarkAllRead(loadedItems)}>
+                  <IconButton onClick={() => handleMarkFeedRead()}>
                     <DoneIcon/>
                   </IconButton>
                 </Badge>
@@ -263,7 +252,7 @@ export default function Feed(props) {
                 starred={starredItems.includes(item._id)}
                 handleMarkRead={handleMarkRead}
                 handleUnmarkRead={handleUnmarkRead}
-                read={readItems.includes(item._id)}
+                unread={unreadItems.includes(item._id)}
                 {...props}
               />
             )

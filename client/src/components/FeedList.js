@@ -51,7 +51,7 @@ export default function FeedList() {
   if (!feeds) return <LinearProgress />
   return (
     <List>
-      <Tooltip title="Read later" placement="right">
+      {/* <Tooltip title="Read later" placement="right">
         <ListItem button component={NavLink} to={`/read-later`} activeClassName="Mui-selected">
           <ListItemIcon className={classes.menuButton}>
             <IconButton
@@ -64,7 +64,7 @@ export default function FeedList() {
           </ListItemIcon>
           <ListItemText primary="Read later" />
         </ListItem>
-      </Tooltip>
+      </Tooltip> */}
       {feeds.map(feed => {
         return (
           <Tooltip title={feed.title} key={feed._id} placement="right">

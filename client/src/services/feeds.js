@@ -96,7 +96,7 @@ const getStarred = () => {
 }
 
 const markRead = (id) => {
-  return axios.put(`/api/feeds/item/${id}`, { read: true })
+  return axios.put(`/api/feeds/item/${id}`, { unread: false })
     .then(response => {
       return response.data;
     })
@@ -106,7 +106,7 @@ const markRead = (id) => {
 }
 
 const unmarkRead = (id) => {
-  return axios.put(`/api/feeds/item/${id}`, { read: false })
+  return axios.put(`/api/feeds/item/${id}`, { unread: true })
     .then(response => {
       return response.data;
     })
@@ -115,8 +115,8 @@ const unmarkRead = (id) => {
     })
 }
 
-const markAllRead = (ids) => {
-  return axios.put('/api/feeds/item/read', { read: ids })
+const markFeedRead = (id) => {
+  return axios.put(`/api/feeds?id=${id}&unread=${false}`)
     .then(response => {
       return response.data;
     })
@@ -125,8 +125,8 @@ const markAllRead = (ids) => {
     })
 }
 
-const getRead = (id) => {
-  return axios.get(`/api/feeds/${id}/read`)
+const getUnread = (id) => {
+  return axios.get(`/api/feeds?id=${id}&unread=${true}`)
     .then(response => {
       return response.data;
     })
@@ -135,15 +135,15 @@ const getRead = (id) => {
     })
 }
 
-const getAllRead = () => {
-  return axios.get('/api/feeds/read')
-    .then(response => {
-      return response.data;
-    })
-    .catch(err => {
-      return err;
-    })
-}
+// const getAllRead = () => {
+//   return axios.get('/api/feeds/read')
+//     .then(response => {
+//       return response.data;
+//     })
+//     .catch(err => {
+//       return err;
+//     })
+// }
 
 const getReadStarred = () => {
   return axios.get('/api/feeds/read-starred')
@@ -175,4 +175,4 @@ const unfollowFeed = (id) => {
     })
 }
 
-export { addFeed, getFeed, getFeedItems, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead, markAllRead, getRead, getAllRead, getReadStarred, getReadLater, unfollowFeed };
+export { addFeed, getFeed, getFeedItems, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead, markFeedRead, getUnread, getReadStarred, getReadLater, unfollowFeed };

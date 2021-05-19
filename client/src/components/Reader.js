@@ -14,7 +14,7 @@ import Container from '@material-ui/core/Container';
 import MenuIcon from '@material-ui/icons/Menu';
 import Feed from './Feed';
 import FeedList from './FeedList';
-import ReadLater from './ReadLater';
+// import ReadLater from './ReadLater';
 import ScrollTop from './ScrollTop';
 import AccountMenu from './AccountMenu';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -232,12 +232,12 @@ export default function Reader(props) {
         <Container maxWidth="lg" className={classes.container}>
 
           <Switch>
-            <Route
+            {/* <Route
               exact path={'/read-later'}
               render={props => {
                 return <ReadLater setTitle={setTitle} searchQuery={searchQuery} {...props} />
               }}
-            />
+            /> */}
             <Route
               exact path={'/:id'}
               render={props => {

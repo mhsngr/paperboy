@@ -6,7 +6,6 @@ const Parser = require('rss-parser');
 
 const parser = new Parser();
 
-
 router.post("/", (req, res) => {
   Feed.findOne({ feedUrl: req.body.url })
     .then(existingFeed => {
@@ -14,7 +13,7 @@ router.post("/", (req, res) => {
         User.findOne({ _id: req.user._id, feeds: existingFeed._id })
           .then(user => {
             if (user) {
-              return res.status(400).json({ message: 'You already follow this feed' })
+              res.status(400).json({ message: 'You already follow this feed' })
             }
             else {
               User.findByIdAndUpdate(req.user._id, { $push: { feeds: existingFeed._id } })
@@ -60,7 +59,7 @@ router.post("/", (req, res) => {
             })
           })
           .catch(err => {
-            return res.status(400).json({ err, message: 'Invalid feed URL' })
+            res.status(400).json({ err, message: 'Invalid feed URL' })
           })
       }
     })
@@ -83,8 +82,26 @@ router.post("/", (req, res) => {
 // });
 
 router.get('/', (req, res) => {
-  if (req.query.id && req.query.limit && req.query.skip && req.query.q) {
+  if (req.query.id && req.query.unread === 'true') {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ $and: [ { _id: [ ...user.unread ] }, { feed: req.query.id } ] })
+          .select('_id')
+          .sort({ isoDate: -1 })
+          .then(unreadItems => {
+            const ids = unreadItems.map(item => item._id);
+            res.status(200).json(ids);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id && req.query.limit && req.query.skip && req.query.q) {
     Item.find({ $and: [ { feed: req.query.id }, { $text : { $search : req.query.q } } ] })
+    // search using regex
     // Item.find({ $and: [ { feed: req.query.id }, { title : { $regex : req.query.q, $options: 'i'  } } ] })
       .sort({ isoDate: -1 })
       .skip(+req.query.skip)
@@ -117,8 +134,7 @@ router.get('/', (req, res) => {
         res.json(err);
       })
   } else if (req.query.id) {
-    Feed.findById(req.query.id)
-      .select('-feedItems')
+    updateFeed(req.query.id)
       .then(feed => {
         res.status(200).json(feed);
       })
@@ -146,15 +162,40 @@ router.get('/', (req, res) => {
   }
 });
 
+router.put('/', (req, res) => {
+  if (req.query.id && req.query.unread === 'false') {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ $and: [ { _id: [ ...user.unread ] }, { feed: req.query.id } ] })
+          .select('_id')
+          .then(readItems => {
+            User.findByIdAndUpdate(req.user._id, { $pull: { unread: { $in: readItems } } }, { new: true })
+              .then(user => {
+                Item.find({ $and: [ { _id: [ ...user.unread ] }, { feed: req.query.id } ] })
+                .then(unreadItems => {
+                  const ids = unreadItems.map(item => item._id);
+                  res.status(200).json(ids);
+                })
+                .catch(err => {
+                  res.json(err);
+                })
+              })
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  }
+});
+
 router.get('/all', (req, res) => {
   Feed.find()
     .select('-feedItems')
+    .sort('title')
     .then(feeds => {
-      feeds.sort((a, b) => {
-        if (a.title.toLowerCase() < b.title.toLowerCase()) return -1;
-        if (a.title.toLowerCase() > b.title.toLowerCase()) return 1;
-        return 0;
-      })
       res.status(200).json(feeds);
     })
     .catch(err => {
@@ -166,34 +207,16 @@ router.get('/starred', (req, res) => {
   User.findById(req.user._id)
     .then(user => {
       res.status(200).json(user.starred);
-      // Item.find({ _id: [ ...user.starred ] })
-      //     .then(starredItems => {
-      //       starredItems.sort((a, b) => b.isoDate - a.isoDate);
-      //       const ids = starredItems.map(item => item._id);
-      //       res.status(200).json(ids);
-      //     })
-      //     .catch(err => {
-      //       res.json(err);
-      //     })
     })
     .catch(err => {
       res.json(err);
     })
 });
 
-router.get('/read', (req, res) => {
+router.get('/unread', (req, res) => {
   User.findById(req.user._id)
     .then(user => {
-      res.status(200).json(user.read);
-      // Item.find({ _id: [ ...user.read ] })
-      //     .then(readItems => {
-      //       readItems.sort((a, b) => b.isoDate - a.isoDate);
-      //       const ids = readItems.map(item => item._id);
-      //       res.status(200).json(ids);
-      //     })
-      //     .catch(err => {
-      //       res.json(err);
-      //     })
+      res.status(200).json(user.unread);
     })
     .catch(err => {
       res.json(err);
@@ -243,51 +266,51 @@ router.get('/read-later', (req, res) => {
     })
 });
 
-router.get('/:id/read', (req, res) => {
-  User.findById(req.user._id)
-    .then(user => {
-      Item.find({ $and: [ { _id: [ ...user.read ] }, { feed: req.params.id } ] })
-          .then(readItems => {
-            readItems.sort((a, b) => b.isoDate - a.isoDate);
-            const ids = readItems.map(item => item._id);
-            res.status(200).json(ids);
-          })
-          .catch(err => {
-            res.json(err);
-          })
-    })
-    .catch(err => {
-      res.json(err);
-    })
-});
+// router.get('/:id/read', (req, res) => {
+//   User.findById(req.user._id)
+//     .then(user => {
+//       Item.find({ $and: [ { _id: [ ...user.read ] }, { feed: req.params.id } ] })
+//           .then(readItems => {
+//             readItems.sort((a, b) => b.isoDate - a.isoDate);
+//             const ids = readItems.map(item => item._id);
+//             res.status(200).json(ids);
+//           })
+//           .catch(err => {
+//             res.json(err);
+//           })
+//     })
+//     .catch(err => {
+//       res.json(err);
+//     })
+// });
 
-router.get('/:id', (req, res) => {
-  Feed.findById(req.params.id)
-    .then(feed => {
-      if (!feed) {
-        res.status(404).json({ message: 'Feed not found' });
-      } else {
-        updateFeed(feed._id)
-          .then(updatedFeed => {
-            Feed.findById(updatedFeed.id)
-              .populate('feedItems')
-              .then(populatedFeed => {
-                populatedFeed.feedItems.sort((a, b) => b.isoDate - a.isoDate);
-                res.status(200).json(populatedFeed)
-              })
-              .catch(err => {
-                res.json(err);
-              })
-          })
-          .catch(err => {
-            res.json(err);
-          })
-      }
-    })
-    .catch(err => {
-      res.json(err);
-    })
-});
+// router.get('/:id', (req, res) => {
+//   Feed.findById(req.params.id)
+//     .then(feed => {
+//       if (!feed) {
+//         res.status(404).json({ message: 'Feed not found' });
+//       } else {
+//         updateFeed(feed._id)
+//           .then(updatedFeed => {
+//             Feed.findById(updatedFeed.id)
+//               .populate('feedItems')
+//               .then(populatedFeed => {
+//                 populatedFeed.feedItems.sort((a, b) => b.isoDate - a.isoDate);
+//                 res.status(200).json(populatedFeed)
+//               })
+//               .catch(err => {
+//                 res.json(err);
+//               })
+//           })
+//           .catch(err => {
+//             res.json(err);
+//           })
+//       }
+//     })
+//     .catch(err => {
+//       res.json(err);
+//     })
+// });
 
 // router.put('/:id', (req, res) => {
 //   const { url, title, description, link, category } = req.body;
@@ -321,19 +344,19 @@ router.get('/item/:id', (req, res) => {
     })
 });
 
-router.put('/item/read', (req, res) => {
-  User.findByIdAndUpdate(req.user._id, { $push: { read: req.body.read } }, { new: true })
-  .then(user => {
-    Item.find({ _id: [ ...user.read ] })
-    .then(readItems => {
-      const ids = readItems.map(item => item._id);
-      res.status(200).json(ids);
-    })
-    .catch(err => {
-      res.json(err);
-    })
-  })
-});
+// router.put('/item/read', (req, res) => {
+//   User.findByIdAndUpdate(req.user._id, { $push: { read: req.body.read } }, { new: true })
+//   .then(user => {
+//     Item.find({ _id: [ ...user.read ] })
+//     .then(readItems => {
+//       const ids = readItems.map(item => item._id);
+//       res.status(200).json(ids);
+//     })
+//     .catch(err => {
+//       res.json(err);
+//     })
+//   })
+// });
 
 router.put('/item/:id', (req, res) => {
   if (req.body.starred === true) {
@@ -377,16 +400,16 @@ router.put('/item/:id', (req, res) => {
     .catch(err => {
       res.json(err);
     })
-  } else if (req.body.read === true) {
-    User.find( {$and: [{ _id: req.user._id }, { read: req.params.id }]})
+  } else if (req.body.unread === true) {
+    User.find( {$and: [{ _id: req.user._id }, { unread: req.params.id }]})
     .then(user => {
       if (user.length > 0) {
-        res.status(400).json({ message: 'Already marked as read' });
+        res.status(400).json({ message: 'Already marked as unread' });
       }
       else {
-        User.findByIdAndUpdate(req.user._id, { $push: { read: req.params.id } }, { new: true })
+        User.findByIdAndUpdate(req.user._id, { $push: { unread: req.params.id } }, { new: true })
         .then(user => {
-          Item.find({ _id: [ ...user.read ] })
+          Item.find({ _id: [ ...user.unread ] })
           .then(readItems => {
             const ids = readItems.map(item => item._id);
             res.status(200).json(ids);
@@ -403,10 +426,10 @@ router.put('/item/:id', (req, res) => {
     .catch(err => {
       res.json(err);
     })
-  } else if (req.body.read === false) {
-    User.findByIdAndUpdate(req.user._id, { $pull: { read: req.params.id } }, { new: true })
+  } else if (req.body.unread === false) {
+    User.findByIdAndUpdate(req.user._id, { $pull: { unread: req.params.id } }, { new: true })
     .then(user => {
-      Item.find({ _id: [ ...user.read ] })
+      Item.find({ _id: [ ...user.unread ] })
       .then(readItems => {
         const ids = readItems.map(item => item._id);
         res.status(200).json(ids);
@@ -463,10 +486,11 @@ const updateFeed = async (id) => {
       const existingItem = await Item.findOne({ title: item.title, link: item.link, isoDate: item.isoDate, feed: feed._id });
       if (!existingItem) {
         const newItem = await Item.create({ ...item, feed: feed._id });
-        await Feed.findByIdAndUpdate(feed._id, { $push: { feedItems: { $each: [newItem._id], $position: 0 } } }, { new: true });
+        await Feed.findByIdAndUpdate(feed._id, { $push: { feedItems: { $each: [newItem._id], $position: 0 } } });
+        await User.updateMany({ feeds: feed._id }, { $push: { unread: { $each: [newItem._id], $position: 0 } } });
       }
     }
-    const updatedFeed = await Feed.findById(id);
+    const updatedFeed = await Feed.findById(id).select('-feedItems');
     return updatedFeed;
   } catch (err) {
     console.log(err);

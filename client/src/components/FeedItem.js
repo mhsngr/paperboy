@@ -55,16 +55,16 @@ export default function FeedItem(props) {
       {open ? (
         <ListItem dense onClick={handleClick}>
           <ListItemText />
-          {props.read ?
-            <Tooltip title="Close">
-              <IconButton size="small">
-                <CloseIcon />
-              </IconButton>
-            </Tooltip>
-            :
+          {props.unread ?
             <Tooltip title="Mark read">
               <IconButton size="small" onClick={() => props.handleMarkRead(props.item._id)}>
                 <DoneIcon />
+              </IconButton>
+            </Tooltip>
+            :
+            <Tooltip title="Close">
+              <IconButton size="small">
+                <CloseIcon />
               </IconButton>
             </Tooltip>
           }
@@ -96,7 +96,7 @@ export default function FeedItem(props) {
             onClick={handleClick}
             primary={
               <div className={classes.feedHeader}>
-                <Typography color={props.read ? 'textSecondary' : 'textPrimary' }>
+                <Typography color={props.unread ? 'textPrimary' : 'textSecondary' }>
                   <Highlighter
                     highlightClassName={classes.highlight}
                     searchWords={[props.searchQuery]}
@@ -104,7 +104,7 @@ export default function FeedItem(props) {
                     textToHighlight={props.item.title}
                   />
                 </Typography>
-                <span><Typography variant="caption" color={props.read ? 'textSecondary' : 'textPrimary' }>{getAge(props.item.isoDate)}</Typography></span>
+                <span><Typography variant="caption" color={props.unread ? 'textPrimary' : 'textSecondary' }>{getAge(props.item.isoDate)}</Typography></span>
               </div>
             }
           />
@@ -112,23 +112,8 @@ export default function FeedItem(props) {
       )}
       <Collapse in={open} timeout="auto" unmountOnExit>
         <Container component="div" className={classes.feedItem}>
-          <Typography variant="h5" color={props.read ? 'textSecondary' : 'textPrimary' } className={classes.feedItemHeading}>
-            {props.read ?
-            <Link
-              href={props.item.link}
-              target="_blank"
-              rel="noreferrer"
-              color="inherit"
-              underline="none"
-            >
-              <Highlighter
-                highlightClassName={classes.highlight}
-                searchWords={[props.searchQuery]}
-                autoEscape={true}
-                textToHighlight={props.item.title}
-              />
-            </Link>
-            :
+          <Typography variant="h5" color={props.unread ? 'textPrimary' : 'textSecondary' } className={classes.feedItemHeading}>
+            {props.unread ?
             <Link
               href={props.item.link}
               target="_blank"
@@ -144,12 +129,27 @@ export default function FeedItem(props) {
                 textToHighlight={props.item.title}
               />
             </Link>
+            :
+            <Link
+              href={props.item.link}
+              target="_blank"
+              rel="noreferrer"
+              color="inherit"
+              underline="none"
+            >
+              <Highlighter
+                highlightClassName={classes.highlight}
+                searchWords={[props.searchQuery]}
+                autoEscape={true}
+                textToHighlight={props.item.title}
+              />
+            </Link>
             }
           </Typography>
           {props.item.author || props.item.creator ? 
           (
-            <Typography variant="subtitle2" paragraph>{props.feedTitle} by {props.item.author || props.item.creator}, {new Date(props.item.isoDate).toLocaleString()} {props.read ? <Link href='#' color='textSecondary' onClick={() => props.handleUnmarkRead(props.item._id)}>mark unread</Link> : '' }</Typography>
-          ) : <Typography variant="subtitle2" paragraph>{props.feedTitle}, {new Date(props.item.isoDate).toLocaleString()} {props.read ? <Link href='#' color='textSecondary' onClick={() => props.handleUnmarkRead(props.item._id)}>mark unread</Link> : '' }</Typography>}
+            <Typography variant="subtitle2" paragraph>{props.feedTitle} by {props.item.author || props.item.creator}, {new Date(props.item.isoDate).toLocaleString()} {props.unread ?  '' : <Link href='#' color='textSecondary' onClick={() => props.handleUnmarkRead(props.item._id)}>mark unread</Link> }</Typography>
+          ) : <Typography variant="subtitle2" paragraph>{props.feedTitle}, {new Date(props.item.isoDate).toLocaleString()} {props.unread ?  '' : <Link href='#' color='textSecondary' onClick={() => props.handleUnmarkRead(props.item._id)}>mark unread</Link> }</Typography>}
           {props.item.categories.length > 0 ? 
           (
             <Typography variant="subtitle2" paragraph>Category: {props.item.categories.join(', ')}</Typography>
@@ -180,13 +180,14 @@ export default function FeedItem(props) {
           (
             <Typography variant="body1" paragraph dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(props.item['content:encoded'] || props.item.content)}} />
           ) : <></>}
-          {props.read ?
+          {props.unread ?
             <Button
               href={props.item.link}
               target="_blank"
               rel="noreferrer"
               variant="outlined"
               fullWidth
+              onClick={() => props.handleMarkRead(props.item._id)}
             >
               Visit Website
             </Button>
@@ -197,7 +198,6 @@ export default function FeedItem(props) {
               rel="noreferrer"
               variant="outlined"
               fullWidth
-              onClick={() => props.handleMarkRead(props.item._id)}
             >
               Visit Website
             </Button>
