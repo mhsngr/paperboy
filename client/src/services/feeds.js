@@ -10,8 +10,8 @@ const addFeed = (url) => {
     })
 }
 
-const getFeed = (id) => {
-  return axios.get(`/api/feeds?id=${id}`)
+const getFeed = (id, query = '') => {
+  return axios.get(`/api/feeds?id=${id}&q=${query}`)
     .then(response => {
       return response.data;
     })

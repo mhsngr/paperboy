@@ -129,7 +129,7 @@ export default function Feed(props) {
   const handleRefresh = () => {
     setLoadedItems(null);
     setHasMore(true);
-    getFeed(props.match.params.id)
+    getFeed(props.match.params.id, props.searchQuery)
       .then(fetchedFeed => {
         setFeed(fetchedFeed);
         props.setTitle(fetchedFeed.title)
@@ -229,8 +229,8 @@ export default function Feed(props) {
           ) : <></>}
           {feed.category ? 
           (
-            <Typography variant="subtitle2" paragraph>Category: {feed.category.join(', ')}, {loadedItems.length} articles</Typography>
-          ) : <Typography variant="subtitle2" paragraph>{loadedItems.length} articles</Typography>}
+            <Typography variant="subtitle2" paragraph>Category: {feed.category.join(', ')}, {feed.feedItems} articles</Typography>
+          ) : <Typography variant="subtitle2" paragraph>{feed.feedItems} articles</Typography>}
       </Container>
       <Divider />
       <List className={classes.feedList}>

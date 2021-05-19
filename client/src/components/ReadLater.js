@@ -1,18 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getStarred, starItem, unstarItem, markRead, unmarkRead, markAllRead, getReadStarred, getAllRead, getReadLater } from '../services/feeds';
+import { getFeed, getFeedItems, getStarred, starItem, unstarItem, markRead, unmarkRead, markFeedRead, getUnread } from '../services/feeds';
 import { makeStyles } from '@material-ui/core/styles';
-// import List from '@material-ui/core/List';
-// import ListItem from '@material-ui/core/ListItem';
-// import ListItemIcon from '@material-ui/core/ListItemIcon';
-// import ListItemText from '@material-ui/core/ListItemText';
-// import Divider from '@material-ui/core/Divider';
-// import InboxIcon from '@material-ui/icons/Inbox';
-// import DraftsIcon from '@material-ui/icons/Drafts';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import ReadLaterItem from './ReadLaterItem';
 import Typography from '@material-ui/core/Typography';
 import List from '@material-ui/core/List';
-import Link from '@material-ui/core/Link';
 import Divider from '@material-ui/core/Divider';
 import Container from '@material-ui/core/Container';
 import DoneIcon from '@material-ui/icons/Done';
@@ -22,6 +14,7 @@ import Badge from '@material-ui/core/Badge';
 import Tooltip from '@material-ui/core/Tooltip';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -45,13 +38,25 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Feed(props) {
+export default function ReadLater(props) {
   const classes = useStyles();
 
   const [feed, setFeed] = useState(null);
-  const [filteredItems, setFilteredItems] = useState(null);
   const [starredItems, setStarredItems] = useState(null);
-  const [readItems, setReadItems] = useState(null);
+  const [unreadItems, setUnreadItems] = useState(null);
+  const [loadedItems, setLoadedItems] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+
+  const loadMoreItems = () => {
+    getFeedItems('starred', props.searchQuery, loadedItems.length, 40)
+      .then(newLoadedItems => {
+        if (newLoadedItems.length === 0) setHasMore(false);
+        else setLoadedItems(loadedItems.concat(newLoadedItems));
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  }
 
   const handleStarItem = (id) => {
     starItem(id)
@@ -79,9 +84,9 @@ export default function Feed(props) {
       .then(response => {
         if (response.message) console.log(response.message);
         else {
-          getReadStarred()
-            .then(fetchedReadItems => {
-              setReadItems(fetchedReadItems);
+          getUnread('starred')
+            .then(fetchedUnreadItems => {
+              setUnreadItems(fetchedUnreadItems);
             })
             .catch(err => {
               console.log(err);
@@ -93,20 +98,10 @@ export default function Feed(props) {
       })
   }
 
-  const handleMarkAllRead = (items) => {
-    const ids = items.map(item => item._id);
-    markAllRead(ids)
+  const handleMarkFeedRead = () => {
+    markFeedRead('starred')
       .then(response => {
-        if (response.message) console.log(response.message);
-        else {
-          getReadStarred()
-            .then(fetchedReadItems => {
-              setReadItems(fetchedReadItems);
-            })
-            .catch(err => {
-              console.log(err);
-            })
-        }
+        setUnreadItems(response);
       })
       .catch(err => {
         console.log(err);
@@ -116,9 +111,9 @@ export default function Feed(props) {
   const handleUnmarkRead = (id) => {
     unmarkRead(id)
       .then(() => {
-        getReadStarred()
-          .then(fetchedReadItems => {
-            setReadItems(fetchedReadItems);
+        getUnread('starred')
+          .then(fetchedUnreadItems => {
+            setUnreadItems(fetchedUnreadItems);
           })
           .catch(err => {
             console.log(err);
@@ -131,18 +126,24 @@ export default function Feed(props) {
 
   const handleRefresh = () => {
     props.setTitle('Read later')
-    setFeed(null);
-    setFilteredItems(null);
-    getStarred()
-      .then(fetchedStarredItems => {
-        setStarredItems(fetchedStarredItems);
-        getReadLater()
-          .then(items => {
-            getReadStarred()
-              .then(fetchedReadItems => {
-                setReadItems(fetchedReadItems);
-                setFeed(items);
-                setFilteredItems(items);
+    setLoadedItems(null);
+    setHasMore(true);
+    getFeed('starred', props.searchQuery)
+      .then(fetchedFeed => {
+        setFeed(fetchedFeed);
+        getUnread('starred')
+          .then(fetchedUnreadItems => {
+            setUnreadItems(fetchedUnreadItems);
+            getStarred()
+              .then(fetchedStarredItems => {
+                setStarredItems(fetchedStarredItems);
+                getFeedItems('starred', props.searchQuery, 0, 40)
+                  .then(feedItems => {
+                    setLoadedItems(feedItems);
+                  })
+                  .catch(err => {
+                    console.log(err);
+                  })
               })
               .catch(err => {
                 console.log(err);
@@ -159,15 +160,10 @@ export default function Feed(props) {
 
   useEffect(() => {
     handleRefresh();
-  }, [props.match.params.id])
+  }, [props.match.params.id, props.searchQuery])
 
-  useEffect(() => {
-    if (!feed) return;
-    const filtered = props.searchQuery ? feed.filter(item => item.title.toLowerCase().includes(props.searchQuery.toLowerCase())) : feed;
-    setFilteredItems(filtered);
-  }, [props.searchQuery])
+  if (!loadedItems) return <LinearProgress />
 
-  if (!filteredItems) return <LinearProgress />
   return (
     <div className={classes.root}>
       <Container component="div" className={classes.feedDetails}>
@@ -176,7 +172,7 @@ export default function Feed(props) {
             Read later
           </Typography>
           <div className={classes.feedToolbar}>
-            {(filteredItems.length - readItems.length) === 0 ?
+            {(unreadItems.length) === 0 ?
               <Tooltip title="All Read">
                 <IconButton>
                   <DoneAllIcon/>
@@ -189,12 +185,12 @@ export default function Feed(props) {
                     vertical: 'top',
                     horizontal: 'left',
                   }}
-                  badgeContent={filteredItems.length - readItems.length}
+                  badgeContent={unreadItems.length}
                   color="primary"
                   overlap="circle"
                   max={999}
                 >
-                  <IconButton onClick={() => handleMarkAllRead(filteredItems)}>
+                  <IconButton onClick={() => handleMarkFeedRead()}>
                     <DoneIcon/>
                   </IconButton>
                 </Badge>
@@ -218,27 +214,35 @@ export default function Feed(props) {
           ) : <></>}
           {feed.category ? 
           (
-            <Typography variant="subtitle2" paragraph>Category: {feed.category.join(', ')}, {feed.feedItems.length} articles</Typography>
-          ) : <Typography variant="subtitle2" paragraph>{filteredItems.length} articles</Typography>}
+            <Typography variant="subtitle2" paragraph>Category: {feed.category.join(', ')}, {feed.feedItems} articles</Typography>
+          ) : <Typography variant="subtitle2" paragraph>{feed.feedItems} articles</Typography>}
       </Container>
       <Divider />
-      <List  className={classes.feedList}>
-        {filteredItems.map(item => {
-          return (
-            <ReadLaterItem
-              key={item._id}
-              feedTitle={item.feed.title}
-              item={item}
-              handleStarItem={handleStarItem}
-              handleUnstarItem={handleUnstarItem}
-              starred={starredItems.includes(item._id)}
-              handleMarkRead={handleMarkRead}
-              handleUnmarkRead={handleUnmarkRead}
-              read={readItems.includes(item._id)}
-              {...props}
-            />
-          )
-        })}
+      <List className={classes.feedList}>
+        <InfiniteScroll
+          dataLength={loadedItems.length}
+          next={loadMoreItems}
+          hasMore={hasMore}
+          loader={<LinearProgress />}
+          scrollableTarget="content"
+        >
+          {loadedItems.map(item => {
+            return (
+              <ReadLaterItem
+                key={item._id}
+                feedTitle={item.feed.title}
+                item={item}
+                handleStarItem={handleStarItem}
+                handleUnstarItem={handleUnstarItem}
+                starred={starredItems.includes(item._id)}
+                handleMarkRead={handleMarkRead}
+                handleUnmarkRead={handleUnmarkRead}
+                unread={unreadItems.includes(item._id)}
+                {...props}
+              />
+            )
+          })}
+        </InfiniteScroll>
       </List>
     </div>
   );

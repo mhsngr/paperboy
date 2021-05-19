@@ -79,7 +79,7 @@ export default function FeedItem(props) {
                 size="small"
                 onClick={() => props.handleUnstarItem(props.item._id)}
               >
-                <TurnedInIcon fontSize="small" color={props.read ? 'disabled' : 'inherit' }/>
+                <TurnedInIcon fontSize="small" color={props.unread ? 'inherit' : 'disabled' }/>
               </IconButton>
             ) :
             (
@@ -87,7 +87,7 @@ export default function FeedItem(props) {
                 size="small"
                 onClick={() => props.handleStarItem(props.item._id)}
               >
-                <TurnedInNotIcon fontSize="small" color={props.read ? 'disabled' : 'inherit' }/>
+                <TurnedInNotIcon fontSize="small" color={props.unread ? 'inherit' : 'disabled' }/>
               </IconButton>
             )}
             </Tooltip>

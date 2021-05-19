@@ -82,7 +82,104 @@ router.post("/", (req, res) => {
 // });
 
 router.get('/', (req, res) => {
-  if (req.query.id && req.query.unread === 'true') {
+  if (req.query.id === 'starred' && req.query.unread === 'true') {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ $and: [ { _id: [ ...user.unread ] }, { _id: [ ...user.starred ] } ] })
+          .select('_id')
+          .sort({ isoDate: -1 })
+          .then(unreadItems => {
+            const ids = unreadItems.map(item => item._id);
+            res.status(200).json(ids);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'starred' && req.query.limit && req.query.skip && req.query.q) {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ $and: [ { _id: [ ...user.starred ] }, { $text : { $search : req.query.q } } ] })
+        // search using regex
+        // Item.find({ $and: [ { feed: req.query.id }, { title : { $regex : req.query.q, $options: 'i'  } } ] })
+          .sort({ isoDate: -1 })
+          .skip(+req.query.skip)
+          .limit(+req.query.limit)
+          .then(items => {
+            res.status(200).json(items);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'starred' && req.query.limit && req.query.skip){
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ _id: [ ...user.starred ] })
+          .sort({ isoDate: -1 })
+          .skip(+req.query.skip)
+          .limit(+req.query.limit)
+          .then(items => {
+            res.status(200).json(items);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'starred' && req.query.limit){
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ _id: [ ...user.starred ] })
+          .sort({ isoDate: -1 })
+          .limit(+req.query.limit)
+          .then(items => {
+            res.status(200).json(items);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'starred' && req.query.q) {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.countDocuments({ $and: [ { _id: [ ...user.starred ] }, { $text : { $search : req.query.q } } ] })
+          .then(count => {
+            res.status(200).json({ feedItems: count });
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'starred') {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.countDocuments({ _id: [ ...user.starred ] })
+          .then(count => {
+            res.status(200).json({feedItems: count });
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id && req.query.unread === 'true') {
     User.findById(req.user._id)
       .then(user => {
         Item.find({ $and: [ { _id: [ ...user.unread ] }, { feed: req.query.id } ] })
@@ -133,10 +230,26 @@ router.get('/', (req, res) => {
       .catch(err => {
         res.json(err);
       })
+  } else if (req.query.id && req.query.q) {
+    Item.countDocuments({ $and: [ { feed: req.query.id }, { $text : { $search : req.query.q } } ] })
+      .then(count => {
+        Feed.findById(req.query.id)
+        .then(feed => {
+          const { _id, feedUrl, title, description, link, category } = feed;
+          res.status(200).json({ _id, feedUrl, title, description, link, category, feedItems: count });
+        })
+        .catch(err => {
+          res.json(err);
+        })
+      })
+      .catch(err => {
+        res.json(err);
+      })
   } else if (req.query.id) {
     updateFeed(req.query.id)
       .then(feed => {
-        res.status(200).json(feed);
+        const { _id, feedUrl, title, description, link, category } = feed;
+        res.status(200).json({ _id, feedUrl, title, description, link, category, feedItems: feed.feedItems.length });
       })
       .catch(err => {
         res.json(err);
@@ -163,13 +276,38 @@ router.get('/', (req, res) => {
 });
 
 router.put('/', (req, res) => {
-  if (req.query.id && req.query.unread === 'false') {
+  if (req.query.id === 'starred' && req.query.unread === 'false') {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ $and: [ { _id: [ ...user.unread ] }, { _id: [ ...user.starred ] } ] })
+          .select('_id')
+          .then(readItems => {
+            User.findByIdAndUpdate(req.user._id, { $pullAll: { unread: readItems } }, { new: true })
+              .then(user => {
+                Item.find({ $and: [ { _id: [ ...user.unread ] }, { _id: [ ...user.starred ] } ] })
+                .then(unreadItems => {
+                  const ids = unreadItems.map(item => item._id);
+                  res.status(200).json(ids);
+                })
+                .catch(err => {
+                  res.json(err);
+                })
+              })
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id && req.query.unread === 'false') {
     User.findById(req.user._id)
       .then(user => {
         Item.find({ $and: [ { _id: [ ...user.unread ] }, { feed: req.query.id } ] })
           .select('_id')
           .then(readItems => {
-            User.findByIdAndUpdate(req.user._id, { $pull: { unread: { $in: readItems } } }, { new: true })
+            User.findByIdAndUpdate(req.user._id, { $pullAll: { unread: readItems } }, { new: true })
               .then(user => {
                 Item.find({ $and: [ { _id: [ ...user.unread ] }, { feed: req.query.id } ] })
                 .then(unreadItems => {
@@ -490,7 +628,7 @@ const updateFeed = async (id) => {
         await User.updateMany({ feeds: feed._id }, { $push: { unread: { $each: [newItem._id], $position: 0 } } });
       }
     }
-    const updatedFeed = await Feed.findById(id).select('-feedItems');
+    const updatedFeed = await Feed.findById(id);
     return updatedFeed;
   } catch (err) {
     console.log(err);

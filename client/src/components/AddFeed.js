@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import { addFeed, getAllFeeds, getIcon } from '../services/feeds';
-import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItem from '@material-ui/core/ListItem';
 import List from '@material-ui/core/List';
-import Divider from '@material-ui/core/Divider';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
 import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
 import Avatar from '@material-ui/core/Avatar';
@@ -81,6 +78,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 export default function AddFeed(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [feeds, setFeeds] = useState(null);
   const [filteredFeeds, setFilteredFeeds] = useState(null);
   const [feedUrl, setFeedUrl] = useState('');
@@ -90,9 +88,11 @@ export default function AddFeed(props) {
 
   const handleClickOpen = () => {
     setOpen(true);
+    setLoading(true);
     setFeedUrl('');
     getAllFeeds()
       .then(allFeeds => {
+        setLoading(false);
         setFeeds(allFeeds);
         setFilteredFeeds(allFeeds);
       })
@@ -107,12 +107,12 @@ export default function AddFeed(props) {
     setMessage('');
   };
 
-  const handleAddFeed = (event) => {
+  const handleAddFeed = () => {
     setAnchorEl(searchRef.current);
-    // props.setFeeds(null);
-    // setOpen(false);
+    setLoading(true);
     addFeed(feedUrl)
       .then(response => {
+        setLoading(false);
         if (response.message) {
           setMessage(response.message);
         }
@@ -134,7 +134,7 @@ export default function AddFeed(props) {
     const filtered = e.target.value ? feeds.filter(feed => feed.title.toLowerCase().includes(e.target.value.toLowerCase()) || feed.feedUrl.toLowerCase().includes(e.target.value.toLowerCase())) : feeds;
     setFilteredFeeds(filtered);
   }
-  
+
   if (!filteredFeeds) return (
     <Tooltip title="Add new feed" placement="right">
       <ListItem button onClick={handleClickOpen}>
@@ -173,9 +173,6 @@ export default function AddFeed(props) {
             <IconButton edge="start" color="inherit" onClick={handleClose} aria-label="close">
               <CloseIcon />
             </IconButton>
-            {/* <Typography variant="h6" className={classes.title}>
-              Add new Feed
-            </Typography> */}
             <div className={classes.search} ref={searchRef}>
               <div className={classes.searchIcon}>
                 <SearchIcon />
@@ -213,18 +210,22 @@ export default function AddFeed(props) {
             </Popover>
           </Toolbar>
         </AppBar>
-        <List>
-          {filteredFeeds.map(feed => {
-            return (
-              <ListItem button key={feed._id} onClick={() => setFeedUrl(feed.feedUrl)}>
-                <ListItemIcon>
-                  <Avatar variant="rounded" src={getIcon(feed.link)} alt={feed.title} />
-                </ListItemIcon>
-                <ListItemText primary={feed.title} />
-              </ListItem>
-            )
-          })}
-        </List>
+        {loading ?
+          <LinearProgress />
+          :
+          <List>
+            {filteredFeeds.map(feed => {
+              return (
+                <ListItem button key={feed._id} onClick={() => setFeedUrl(feed.feedUrl)}>
+                  <ListItemIcon>
+                    <Avatar variant="rounded" src={getIcon(feed.link)} alt={feed.title} />
+                  </ListItemIcon>
+                  <ListItemText primary={feed.title} />
+                </ListItem>
+              )
+            })}
+          </List>
+        }
       </Dialog>
     </div>
   );

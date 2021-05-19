@@ -1,5 +1,6 @@
 const Feed = require('./models/Feed');
 const Item = require('./models/Item');
+const User = require('./models/User');
 const Parser = require('rss-parser');
 
 const parser = new Parser();
@@ -90,7 +91,8 @@ const fetchFeeds = async () => {
         const existingItem = await Item.findOne({ title: item.title, link: item.link, isoDate: item.isoDate, feed: feed._id });
         if (!existingItem) {
           const newItem = await Item.create({ ...item, feed: feed._id });
-          await Feed.findByIdAndUpdate(feed._id, { $push: { feedItems: { $each: [newItem._id], $position: 0 } } }, { new: true });
+          await Feed.findByIdAndUpdate(feed._id, { $push: { feedItems: { $each: [newItem._id], $position: 0 } } });
+          await User.updateMany({ feeds: feed._id }, { $push: { unread: { $each: [newItem._id], $position: 0 } } });
           count++;
         }
       }
