@@ -14,20 +14,20 @@ function App(props) {
     <>
       <CssBaseline/>
       <Route
-        exact path="/signin"
-        render={props => <SignIn setUser={setUser} {...props} />}
-      />
-      <Route
-        exact path="/signup"
-        render={props => <SignUp setUser={setUser} {...props} />}
-      />
-      <Route
         path='/'
         render={props => {
           if (user) {
             return <Reader setUser={setUser} user={user} {...props} />
           } else return <Redirect to='/signin' />
         }}
+      />
+      <Route
+        exact path="/signin"
+        render={props => <SignIn setUser={setUser} {...props} />}
+      />
+      <Route
+        exact path="/signup"
+        render={props => <SignUp setUser={setUser} {...props} />}
       />
     </>
   );
