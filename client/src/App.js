@@ -2,11 +2,12 @@ import React from 'react';
 import '@fontsource/roboto';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { Route, Redirect } from 'react-router-dom';
+import Reader from './components/Reader';
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
-import Reader from './components/Reader';
 
 function App(props) {
+
   const [user, setUser] = React.useState(props.user);
 
   return (

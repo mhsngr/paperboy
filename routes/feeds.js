@@ -105,6 +105,10 @@ router.get('/', (req, res) => {
         Item.find({ $and: [ { _id: [ ...user.starred ] }, { $text : { $search : req.query.q } } ] })
         // search using regex
         // Item.find({ $and: [ { feed: req.query.id }, { title : { $regex : req.query.q, $options: 'i'  } } ] })
+          .populate({
+            path: 'feed',
+            select: 'title'
+          })
           .sort({ isoDate: -1 })
           .skip(+req.query.skip)
           .limit(+req.query.limit)
@@ -122,6 +126,10 @@ router.get('/', (req, res) => {
     User.findById(req.user._id)
       .then(user => {
         Item.find({ _id: [ ...user.starred ] })
+          .populate({
+            path: 'feed',
+            select: 'title'
+          })
           .sort({ isoDate: -1 })
           .skip(+req.query.skip)
           .limit(+req.query.limit)
@@ -139,6 +147,10 @@ router.get('/', (req, res) => {
     User.findById(req.user._id)
       .then(user => {
         Item.find({ _id: [ ...user.starred ] })
+          .populate({
+            path: 'feed',
+            select: 'title'
+          })
           .sort({ isoDate: -1 })
           .limit(+req.query.limit)
           .then(items => {
@@ -179,6 +191,208 @@ router.get('/', (req, res) => {
       .catch(err => {
         res.json(err);
       })
+  } else if (req.query.id === 'starred' && req.query.limit && req.query.skip && req.query.q) {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ $and: [ { _id: [ ...user.starred ] }, { $text : { $search : req.query.q } } ] })
+        // search using regex
+        // Item.find({ $and: [ { feed: req.query.id }, { title : { $regex : req.query.q, $options: 'i'  } } ] })
+          .populate({
+            path: 'feed',
+            select: 'title'
+          })
+          .sort({ isoDate: -1 })
+          .skip(+req.query.skip)
+          .limit(+req.query.limit)
+          .then(items => {
+            res.status(200).json(items);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'starred' && req.query.limit && req.query.skip){
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ _id: [ ...user.starred ] })
+          .populate({
+            path: 'feed',
+            select: 'title'
+          })
+          .sort({ isoDate: -1 })
+          .skip(+req.query.skip)
+          .limit(+req.query.limit)
+          .then(items => {
+            res.status(200).json(items);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'starred' && req.query.limit){
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ _id: [ ...user.starred ] })
+          .populate({
+            path: 'feed',
+            select: 'title'
+          })
+          .sort({ isoDate: -1 })
+          .limit(+req.query.limit)
+          .then(items => {
+            res.status(200).json(items);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'starred' && req.query.q) {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.countDocuments({ $and: [ { _id: [ ...user.starred ] }, { $text : { $search : req.query.q } } ] })
+          .then(count => {
+            res.status(200).json({ feedItems: count });
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'starred') {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.countDocuments({ _id: [ ...user.starred ] })
+          .then(count => {
+            res.status(200).json({feedItems: count });
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'all' && req.query.unread === 'true') {
+  User.findById(req.user._id)
+    .then(user => {
+      Item.find({ $and: [ { feed: [ ...user.feeds ] }, { _id: [ ...user.unread ] } ] })
+        .select('_id')
+        .sort({ isoDate: -1 })
+        .then(unreadItems => {
+          const ids = unreadItems.map(item => item._id);
+          res.status(200).json(ids);
+        })
+        .catch(err => {
+          res.json(err);
+        })
+    })
+    .catch(err => {
+      res.json(err);
+    })
+  } else if (req.query.id === 'all' && req.query.limit && req.query.skip && req.query.q) {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ $and: [ { feed: [ ...user.feeds ] }, { $text : { $search : req.query.q } } ] })
+        // search using regex
+        // Item.find({ $and: [ { feed: req.query.id }, { title : { $regex : req.query.q, $options: 'i'  } } ] })
+          .populate({
+            path: 'feed',
+            select: 'title'
+          })
+          .sort({ isoDate: -1 })
+          .skip(+req.query.skip)
+          .limit(+req.query.limit)
+          .then(items => {
+            res.status(200).json(items);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'all' && req.query.limit && req.query.skip){
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ feed: [ ...user.feeds ] })
+          .populate({
+            path: 'feed',
+            select: 'title'
+          })
+          .sort({ isoDate: -1 })
+          .skip(+req.query.skip)
+          .limit(+req.query.limit)
+          .then(items => {
+            res.status(200).json(items);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'all' && req.query.limit){
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ feed: [ ...user.feeds ] })
+          .populate({
+            path: 'feed',
+            select: 'title'
+          })
+          .sort({ isoDate: -1 })
+          .limit(+req.query.limit)
+          .then(items => {
+            res.status(200).json(items);
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'all' && req.query.q) {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.countDocuments({ $and: [ { feed: [ ...user.feeds ] }, { $text : { $search : req.query.q } } ] })
+          .then(count => {
+            res.status(200).json({ feedItems: count });
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+  } else if (req.query.id === 'all') {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.countDocuments({ feed: [ ...user.feeds ] })
+          .then(count => {
+            res.status(200).json({feedItems: count });
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
+
   } else if (req.query.id && req.query.unread === 'true') {
     User.findById(req.user._id)
       .then(user => {
@@ -301,6 +515,31 @@ router.put('/', (req, res) => {
       .catch(err => {
         res.json(err);
       })
+  } else if (req.query.id === 'all' && req.query.unread === 'false') {
+    User.findById(req.user._id)
+      .then(user => {
+        Item.find({ $and: [ { _id: [ ...user.unread ] }, { feed: [ ...user.feeds ] } ] })
+          .select('_id')
+          .then(readItems => {
+            User.findByIdAndUpdate(req.user._id, { $pullAll: { unread: readItems } }, { new: true })
+              .then(user => {
+                Item.find({ $and: [ { _id: [ ...user.unread ] }, { feed: [ ...user.feeds ] } ] })
+                .then(unreadItems => {
+                  const ids = unreadItems.map(item => item._id);
+                  res.status(200).json(ids);
+                })
+                .catch(err => {
+                  res.json(err);
+                })
+              })
+          })
+          .catch(err => {
+            res.json(err);
+          })
+      })
+      .catch(err => {
+        res.json(err);
+      })
   } else if (req.query.id && req.query.unread === 'false') {
     User.findById(req.user._id)
       .then(user => {
@@ -351,58 +590,58 @@ router.get('/starred', (req, res) => {
     })
 });
 
-router.get('/unread', (req, res) => {
-  User.findById(req.user._id)
-    .then(user => {
-      res.status(200).json(user.unread);
-    })
-    .catch(err => {
-      res.json(err);
-    })
-});
+// router.get('/unread', (req, res) => {
+//   User.findById(req.user._id)
+//     .then(user => {
+//       res.status(200).json(user.unread);
+//     })
+//     .catch(err => {
+//       res.json(err);
+//     })
+// });
 
-router.get('/read-starred', (req, res) => {
-  User.findById(req.user._id)
-    .then(user => {
-      Item.find({ $and: [ { _id: [ ...user.read ] }, { _id: [ ...user.starred ] } ] })
-          .then(readItems => {
-            readItems.sort((a, b) => b.isoDate - a.isoDate);
-            const ids = readItems.map(item => item._id);
-            res.status(200).json(ids);
-          })
-          .catch(err => {
-            res.json(err);
-          })
-    })
-    .catch(err => {
-      res.json(err);
-    })
-});
+// router.get('/read-starred', (req, res) => {
+//   User.findById(req.user._id)
+//     .then(user => {
+//       Item.find({ $and: [ { _id: [ ...user.read ] }, { _id: [ ...user.starred ] } ] })
+//           .then(readItems => {
+//             readItems.sort((a, b) => b.isoDate - a.isoDate);
+//             const ids = readItems.map(item => item._id);
+//             res.status(200).json(ids);
+//           })
+//           .catch(err => {
+//             res.json(err);
+//           })
+//     })
+//     .catch(err => {
+//       res.json(err);
+//     })
+// });
 
-router.get('/read-later', (req, res) => {
-  User.findById(req.user._id)
-    .then(user => {
-      Item.find({ _id: [ ...user.starred ] })
-          .populate({
-            path: 'feed',
-            select: 'title'
-          })
-          .then(starredItems => {
-            if (!starredItems) {
-              res.status(400).json({ message: 'No starred items' })
-            } else {
-              starredItems.sort((a, b) => b.isoDate - a.isoDate);
-              res.status(200).json(starredItems);
-            }
-          })
-          .catch(err => {
-            res.json(err);
-          })
-    })
-    .catch(err => {
-      res.json(err);
-    })
-});
+// router.get('/read-later', (req, res) => {
+//   User.findById(req.user._id)
+//     .then(user => {
+//       Item.find({ _id: [ ...user.starred ] })
+//           .populate({
+//             path: 'feed',
+//             select: 'title'
+//           })
+//           .then(starredItems => {
+//             if (!starredItems) {
+//               res.status(400).json({ message: 'No starred items' })
+//             } else {
+//               starredItems.sort((a, b) => b.isoDate - a.isoDate);
+//               res.status(200).json(starredItems);
+//             }
+//           })
+//           .catch(err => {
+//             res.json(err);
+//           })
+//     })
+//     .catch(err => {
+//       res.json(err);
+//     })
+// });
 
 // router.get('/:id/read', (req, res) => {
 //   User.findById(req.user._id)
@@ -461,26 +700,36 @@ router.get('/read-later', (req, res) => {
 //     })
 // });
 
-router.delete('/:id', (req, res) => {
-  User.findByIdAndUpdate(req.user._id, { $pull: { feeds: req.params.id } })
-    .then(() => {
-      res.status(200).json({ message: 'Feed unfollowed' });
+router.delete('/', (req, res) => {
+  User.findByIdAndUpdate(req.user._id, { $pull: { feeds: req.query.id } }, { new: true })
+    .select('feeds')
+    .populate({
+      path: 'feeds',
+      select: '-feedItems'
+    })
+    .then(user => {
+      user.feeds.sort((a, b) => {
+        if (a.title.toLowerCase() < b.title.toLowerCase()) return -1;
+        if (a.title.toLowerCase() > b.title.toLowerCase()) return 1;
+        return 0;
+      })
+      res.status(200).json(user.feeds);
     })
     .catch(err => {
-    res.json(err);
-  })
+      res.json(err);
+    })
 })
 
-router.get('/item/:id', (req, res) => {
-  Item.findById(req.params.id)
-    .then(item => {
-      if (!item) {
-        res.status(404).json({ message: 'Item not found' });
-      } else {
-        res.status(200).json(item);
-      }
-    })
-});
+// router.get('/item/:id', (req, res) => {
+//   Item.findById(req.params.id)
+//     .then(item => {
+//       if (!item) {
+//         res.status(404).json({ message: 'Item not found' });
+//       } else {
+//         res.status(200).json(item);
+//       }
+//     })
+// });
 
 // router.put('/item/read', (req, res) => {
 //   User.findByIdAndUpdate(req.user._id, { $push: { read: req.body.read } }, { new: true })
@@ -632,6 +881,8 @@ const updateFeed = async (id) => {
     return updatedFeed;
   } catch (err) {
     console.log(err);
+    const feed = await Feed.findById(id);
+    return feed;
   }
 }
 

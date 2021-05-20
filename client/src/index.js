@@ -1,24 +1,26 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-// import './index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { BrowserRouter } from 'react-router-dom';
 import axios from 'axios';
-import { ThemeSwitcherProvider } from "mui-theme-switcher";
 import { createMuiTheme } from "@material-ui/core";
+import { ThemeSwitcherProvider } from "mui-theme-switcher";
+import { BrowserRouter } from 'react-router-dom';
+import reportWebVitals from './reportWebVitals';
 
-const lightTheme = createMuiTheme();
+const lightTheme = createMuiTheme({
+  palette: {
+    type: "light",
+    primary: {
+      main: '#2e7d59',
+    },
+  }
+});
 const darkTheme = createMuiTheme({
   palette: {
     type: "dark",
-    // primary: {
-    //   main: '#000000',
-    //   // background: {
-    //   //   default: '#000000',
-    //   //   paper: '#000000',
-    //   // },
-    // },
+    primary: {
+      main: '#2e7d59',
+    },
   }
 });
 

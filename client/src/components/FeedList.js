@@ -1,63 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { getUserFeeds, getIcon } from '../services/feeds';
+import { getIcon } from '../services/feeds';
 import { makeStyles } from '@material-ui/core/styles';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import List from '@material-ui/core/List';
-// import DashboardIcon from '@material-ui/icons/Dashboard';
-// import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
-// import PeopleIcon from '@material-ui/icons/People';
-// import BarChartIcon from '@material-ui/icons/BarChart';
-// import LayersIcon from '@material-ui/icons/Layers';
-// import AssignmentIcon from '@material-ui/icons/Assignment';
-// import RssFeedIcon from '@material-ui/icons/RssFeed';
 import Avatar from '@material-ui/core/Avatar';
 import Tooltip from '@material-ui/core/Tooltip';
-import AddIcon from '@material-ui/icons/Add';
 import AddFeed from './AddFeed';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import BookmarksIcon from '@material-ui/icons/Bookmarks';
 import IconButton from '@material-ui/core/IconButton';
+import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 
 const useStyles = makeStyles((theme) => ({
   menuButton: {
     display: 'flex',
     justifyContent: 'center',
   },
+  feedTitle: {
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+  },
 }));
 
-export default function FeedList() {
+export default function FeedList(props) {
+
   const classes = useStyles();
-  const [feeds, setFeeds] = useState([]);
 
-  const updateFeeds = () => {
-    setFeeds(null)
-    getUserFeeds()
-      .then(fetchedFeeds => {
-        setFeeds(fetchedFeeds);
-      })
-      .catch(err => {
-        console.log(err);
-      })
-  }
+  // const [feeds, setFeeds] = useState([]);
 
-  useEffect(() => {
-    updateFeeds()
-  }, [])
+  // const updateUserFeeds = () => {
+  //   getUserFeeds()
+  //     .then(fetchedFeeds => {
+  //       props.setUserFeeds(fetchedFeeds);
+  //     })
+  //     .catch(err => {
+  //       console.log(err);
+  //     })
+  // }
 
-  if (!feeds) return <LinearProgress />
+  // useEffect(() => {
+  //   updateUserFeeds()
+  // }, [])
+
+  if (!props.userFeeds) return <LinearProgress />
+
   return (
     <List>
+      <Tooltip title="All feeds" placement="right">
+        <ListItem button component={NavLink} to={`/all`} activeClassName="Mui-selected">
+          <ListItemIcon className={classes.menuButton}>
+            <IconButton
+              edge="start"
+              color="inherit"
+            >
+              <LibraryBooksIcon/>
+            </IconButton>
+          </ListItemIcon>
+          <ListItemText primary="All feeds" />
+        </ListItem>
+      </Tooltip>
       <Tooltip title="Read later" placement="right">
         <ListItem button component={NavLink} to={`/read-later`} activeClassName="Mui-selected">
           <ListItemIcon className={classes.menuButton}>
             <IconButton
               edge="start"
               color="inherit"
-              aria-label="read later"
             >
               <BookmarksIcon/>
             </IconButton>
@@ -65,19 +77,19 @@ export default function FeedList() {
           <ListItemText primary="Read later" />
         </ListItem>
       </Tooltip>
-      {feeds.map(feed => {
+      {props.userFeeds.map(feed => {
         return (
           <Tooltip title={feed.title} key={feed._id} placement="right">
             <ListItem button component={NavLink} to={`/${feed._id}`} activeClassName="Mui-selected">
               <ListItemAvatar>
                 <Avatar variant="rounded" src={getIcon(feed.link)} alt={feed.title} />
               </ListItemAvatar>
-              <ListItemText primary={feed.title} />
+              <ListItemText primary={feed.title} className={classes.feedTitle}/>
             </ListItem>
           </Tooltip>
         )
       })}
-      <AddFeed updateFeeds={updateFeeds} setFeeds={setFeeds}/>
+      <AddFeed updateUserFeeds={() => props.updateUserFeeds()} setUserFeeds={props.setUserFeeds} />
     </List>
   )
 }

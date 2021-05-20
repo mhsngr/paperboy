@@ -8,4 +8,4 @@ app.listen(PORT, () => {
   console.log(`Server listening on port http://localhost:${PORT}`);
 });
 
-aggregateFeeds(1000 * 60);
+aggregateFeeds(1000 * 60 * 5);

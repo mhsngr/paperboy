@@ -7,10 +7,11 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
 import Link from '@material-ui/core/Link';
 import Paper from '@material-ui/core/Paper';
-import Box from '@material-ui/core/Box';
 import Grid from '@material-ui/core/Grid';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
@@ -24,6 +25,21 @@ const useStyles = makeStyles((theme) => ({
       theme.palette.type === 'light' ? theme.palette.grey[50] : theme.palette.grey[900],
     backgroundSize: 'cover',
     backgroundPosition: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  card: {
+    margin: theme.spacing(16,4),
+  },
+  welcome: {
+    padding: theme.spacing(2),
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  heading: {
+    marginBottom: theme.spacing(1),
   },
   paper: {
     margin: theme.spacing(8, 4),
@@ -45,6 +61,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SignIn(props) {
+
   const classes = useStyles();
 
   const [username, setUsername] = useState('');
@@ -52,8 +69,8 @@ export default function SignIn(props) {
   const [usernameError, setUsernameError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  const handleSubmit = e => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
     signin(username, password)
       .then(response => {
         if (response.usernameError) {
@@ -72,7 +89,23 @@ export default function SignIn(props) {
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
-      <Grid item xs={false} sm={4} md={7} className={classes.image} />
+      <Grid item xs={false} sm={4} md={7} className={classes.image}>
+          <Card className={classes.card}>
+            <CardContent>
+              <div className={classes.welcome}>
+                <Typography component="h1" variant="h5">
+                  Welcome to
+                </Typography>
+                <Typography component="h1" variant="h2" className={classes.heading}>
+                  Paperboy
+                </Typography>
+                <Typography component="h1" variant="h4" className={classes.heading}>
+                  News feed reader and aggreagtor
+                </Typography>            
+              </div>
+            </CardContent>
+          </Card>
+      </Grid>
       <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
         <div className={classes.paper}>
           <Avatar className={classes.avatar}>

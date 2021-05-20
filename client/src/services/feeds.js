@@ -145,28 +145,28 @@ const getUnread = (id) => {
 //     })
 // }
 
-const getReadStarred = () => {
-  return axios.get('/api/feeds/read-starred')
-    .then(response => {
-      return response.data;
-    })
-    .catch(err => {
-      return err;
-    })
-}
+// const getReadStarred = () => {
+//   return axios.get('/api/feeds/read-starred')
+//     .then(response => {
+//       return response.data;
+//     })
+//     .catch(err => {
+//       return err;
+//     })
+// }
 
-const getReadLater = (id) => {
-  return axios.get('/api/feeds/read-later')
-    .then(response => {
-      return response.data;
-    })
-    .catch(err => {
-      return err;
-    })
-}
+// const getReadLater = (id) => {
+//   return axios.get('/api/feeds/read-later')
+//     .then(response => {
+//       return response.data;
+//     })
+//     .catch(err => {
+//       return err;
+//     })
+// }
 
 const unfollowFeed = (id) => {
-  return axios.delete(`/api/feeds/${id}`)
+  return axios.delete(`/api/feeds?id=${id}`)
     .then(response => {
       return response.data;
     })
@@ -175,4 +175,4 @@ const unfollowFeed = (id) => {
     })
 }
 
-export { addFeed, getFeed, getFeedItems, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead, markFeedRead, getUnread, getReadStarred, getReadLater, unfollowFeed };
+export { addFeed, getFeed, getFeedItems, getUserFeeds, getAllFeeds, getIcon, getAge, starItem, unstarItem, getStarred, markRead, unmarkRead, markFeedRead, getUnread, unfollowFeed };

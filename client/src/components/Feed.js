@@ -20,12 +20,11 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
-    // height: `calc(100vh - 64px)`,
-    // overflow: 'auto',
     backgroundColor: theme.palette.background.paper,
   },
   feedDetails: {
     paddingTop: theme.spacing(2),
+    maxWidth: '100%',
   },
   feedHeader: {
     display: 'flex',
@@ -41,6 +40,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Feed(props) {
+  
   const classes = useStyles();
 
   const [feed, setFeed] = useState(null);
@@ -50,7 +50,7 @@ export default function Feed(props) {
   const [hasMore, setHasMore] = useState(true);
 
   const loadMoreItems = () => {
-    getFeedItems(feed._id, props.searchQuery, loadedItems.length, 40)
+    getFeedItems(feed._id, props.searchQuery, loadedItems.length , props.itemPerPage)
       .then(newLoadedItems => {
         if (newLoadedItems.length === 0) setHasMore(false);
         else setLoadedItems(loadedItems.concat(newLoadedItems));
@@ -139,7 +139,7 @@ export default function Feed(props) {
             getStarred()
               .then(fetchedStarredItems => {
                 setStarredItems(fetchedStarredItems);
-                getFeedItems(fetchedFeed._id, props.searchQuery, 0, 40)
+                getFeedItems(fetchedFeed._id, props.searchQuery, 0, props.itemPerPage)
                   .then(feedItems => {
                     setLoadedItems(feedItems);
                   })
@@ -163,13 +163,6 @@ export default function Feed(props) {
   useEffect(() => {
     handleRefresh();
   }, [props.match.params.id, props.searchQuery])
-
-  // useEffect(() => {
-  //   if (!feed) return;
-  //   const filtered = props.searchQuery ? feed.feedItems.filter(item => item.title.toLowerCase().includes(props.searchQuery.toLowerCase())) : feed.feedItems;
-  //   setLoadedItems(filtered.slice(0,40));
-  //   setFilteredItems(filtered);
-  // }, [props.searchQuery])
 
   if (!loadedItems) return <LinearProgress />
 
@@ -218,9 +211,7 @@ export default function Feed(props) {
                 <RefreshIcon/>
               </IconButton>
             </Tooltip>
-            <Tooltip title="More options">
-              <OptionsMenu feedId={feed._id} history={props.history} />
-            </Tooltip>
+            <OptionsMenu feed={feed} history={props.history} setUserFeeds={props.setUserFeeds}{...props} />
           </div>
         </div>
           {feed.description ? 

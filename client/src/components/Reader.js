@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Switch, Route } from 'react-router-dom';
-import { signout } from '../services/auth';
+import { getUserFeeds } from '../services/feeds';
 import clsx from 'clsx';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -12,6 +12,7 @@ import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
 import Container from '@material-ui/core/Container';
 import MenuIcon from '@material-ui/icons/Menu';
+import Welcome from './Welcome';
 import Feed from './Feed';
 import FeedList from './FeedList';
 import ReadLater from './ReadLater';
@@ -20,16 +21,14 @@ import AccountMenu from './AccountMenu';
 import Tooltip from '@material-ui/core/Tooltip';
 import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
-import MenuItem from '@material-ui/core/MenuItem';
-import Menu from '@material-ui/core/Menu';
-import Avatar from '@material-ui/core/Avatar';
 import { useThemeSwitcher } from "mui-theme-switcher";
 import WbSunnyIcon from '@material-ui/icons/WbSunny';
 import Brightness3Icon from '@material-ui/icons/Brightness3';
 import Fab from '@material-ui/core/Fab';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 
-const drawerWidth = 240;
+const drawerWidth = 300;
+const itemPerPage = 40;
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -51,12 +50,16 @@ const useStyles = makeStyles((theme) => ({
     position: 'relative',
     whiteSpace: 'nowrap',
     width: drawerWidth,
+    height: '100vh',
+    overflow: 'auto',
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
   },
   drawerPaperClose: {
+    height: '100vh',
+    overflow: 'auto',
     overflowX: 'hidden',
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
@@ -66,6 +69,17 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.up('sm')]: {
       width: theme.spacing(9),
     },
+    '&::-webkit-scrollbar': {
+      width: '2px'
+    },
+    // '&::-webkit-scrollbar-track': {
+    //   boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+    //   webkitBoxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)'
+    // },
+    // '&::-webkit-scrollbar-thumb': {
+    //   backgroundColor: 'rgba(0,0,0,.1)',
+    //   outline: '1px solid slategrey'
+    // }
   },
   appBarSpacer: theme.mixins.toolbar,
   content: {
@@ -75,15 +89,13 @@ const useStyles = makeStyles((theme) => ({
   },
   container: {
     padding: 0,
+    maxWidth: '100%',
   },
   paper: {
     padding: theme.spacing(2),
     display: 'flex',
     overflow: 'auto',
     flexDirection: 'column',
-  },
-  fixedHeight: {
-    height: 240,
   },
   search: {
     position: 'relative',
@@ -131,42 +143,10 @@ export default function Reader(props) {
   const classes = useStyles();
   const { dark, toggleDark } = useThemeSwitcher();
   const [open, setOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
   const [title, setTitle] = useState('Paperboy');
+  const [userFeeds, setUserFeeds] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const contentRef = React.useRef();
-
-  const handleProfileMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-  const handleSignout = () => {
-    signout()
-      .then(() => {
-        props.setUser(null);
-        props.history.push('/signin');
-      })
-  };
-
-  const renderMenu = (
-    <Menu
-      anchorEl={anchorEl}
-      getContentAnchorEl={null}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      id='account-menu'
-      keepMounted
-      transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-      open={Boolean(anchorEl)}
-      onClose={handleMenuClose}
-    >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-      <MenuItem onClick={handleSignout}>Sign Out</MenuItem>
-    </Menu>
-  );
-
-
 
   const handleDrawerOpen = () => {
     if (open) setOpen(false);
@@ -176,6 +156,20 @@ export default function Reader(props) {
   const search = e => {
     setSearchQuery(e.target.value);
   }
+
+  const updateUserFeeds = () => {
+    getUserFeeds()
+      .then(fetchedFeeds => {
+        setUserFeeds(fetchedFeeds);
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  }
+
+  useEffect(() => {
+    updateUserFeeds()
+  }, [])
 
   return (
     <div className={classes.root}>
@@ -224,24 +218,36 @@ export default function Reader(props) {
         open={open}
       >
         <Toolbar />
-        <FeedList/>
+        <FeedList userFeeds={userFeeds} setUserFeeds={setUserFeeds} updateUserFeeds={updateUserFeeds} />
         <Divider />
       </Drawer>
       <main id="content" className={classes.content}  ref={contentRef}>
         <Toolbar id="back-to-top-anchor"/>
-        <Container maxWidth="lg" className={classes.container}>
+        <Container className={classes.container}>
 
           <Switch>
             <Route
+              exact path={'/all'}
+              render={props => {
+                return <ReadLater setTitle={setTitle} id={'all'} title={'All feeds'} searchQuery={searchQuery} itemPerPage={itemPerPage} {...props} />
+              }}
+            />
+            <Route
               exact path={'/read-later'}
               render={props => {
-                return <ReadLater setTitle={setTitle} searchQuery={searchQuery} {...props} />
+                return <ReadLater setTitle={setTitle} id={'starred'} title={'Read later'} searchQuery={searchQuery} itemPerPage={itemPerPage} {...props} />
               }}
             />
             <Route
               exact path={'/:id'}
               render={props => {
-                return <Feed setTitle={setTitle} searchQuery={searchQuery} {...props} />
+                return <Feed setTitle={setTitle} setUserFeeds={setUserFeeds} searchQuery={searchQuery} itemPerPage={itemPerPage} {...props} />
+              }}
+            />
+            <Route
+              exact path={'/'}
+              render={props => {
+                return <Welcome setTitle={setTitle} userFeeds={userFeeds} user={props.user} {...props} />
               }}
             />
           </Switch>

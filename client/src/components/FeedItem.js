@@ -18,6 +18,7 @@ import CloseIcon from '@material-ui/icons/Close';
 import Link from '@material-ui/core/Link';
 import DOMPurify from 'dompurify';
 import DoneIcon from '@material-ui/icons/Done';
+import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import Highlighter from "react-highlight-words";
 
 const useStyles = makeStyles((theme) => ({
@@ -30,6 +31,12 @@ const useStyles = makeStyles((theme) => ({
   feedHeader: {
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  itemTitle: {
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
   },
   toolbar: {
     paddingBottom: theme.spacing(2),
@@ -96,7 +103,7 @@ export default function FeedItem(props) {
             onClick={handleClick}
             primary={
               <div className={classes.feedHeader}>
-                <Typography color={props.unread ? 'textPrimary' : 'textSecondary' }>
+                <Typography className={classes.itemTitle} color={props.unread ? 'textPrimary' : 'textSecondary' }>
                   <Highlighter
                     highlightClassName={classes.highlight}
                     searchWords={[props.searchQuery]}
@@ -104,7 +111,7 @@ export default function FeedItem(props) {
                     textToHighlight={props.item.title}
                   />
                 </Typography>
-                <span><Typography variant="caption" color={props.unread ? 'textPrimary' : 'textSecondary' }>{getAge(props.item.isoDate)}</Typography></span>
+                <Typography variant="caption" color={props.unread ? 'textPrimary' : 'textSecondary' }>{getAge(props.item.isoDate)}</Typography>
               </div>
             }
           />
@@ -174,7 +181,7 @@ export default function FeedItem(props) {
                 </Button>
               )}
             </Tooltip>
-            <Button>Share</Button>
+            <Button><MoreHorizIcon /></Button>
           </ButtonGroup>
           {props.item['content:encoded'] || props.item.content ? 
           (

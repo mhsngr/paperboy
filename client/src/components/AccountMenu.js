@@ -37,7 +37,7 @@ export default function OptionsMenu(props) {
           onClick={handleMenuOpen}
           color="inherit"
         >
-          <Avatar src={props.user.picture} alt={props.user.username} />
+          <Avatar src={" "} alt={props.user.username} />
         </IconButton>
       </Tooltip>
 

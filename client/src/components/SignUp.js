@@ -7,7 +7,6 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
 import Link from '@material-ui/core/Link';
 import Grid from '@material-ui/core/Grid';
-import Box from '@material-ui/core/Box';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
@@ -34,6 +33,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SignUp(props) {
+
   const classes = useStyles();
 
   const [username, setUsername] = useState('');
@@ -43,8 +43,8 @@ export default function SignUp(props) {
   const [passwordError, setPasswordError] = useState('');
   const [confirmError, setConfirmError] = useState('');
 
-  const handleSubmit = e => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
     if (password === confirm) {
       signup(username, password)
         .then(response => {

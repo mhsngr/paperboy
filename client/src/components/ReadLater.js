@@ -19,11 +19,11 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
-    // maxWidth: 360,
     backgroundColor: theme.palette.background.paper,
   },
   feedDetails: {
     paddingTop: theme.spacing(2),
+    maxWidth: '100%',
   },
   feedHeader: {
     display: 'flex',
@@ -39,6 +39,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function ReadLater(props) {
+  
   const classes = useStyles();
 
   const [feed, setFeed] = useState(null);
@@ -48,7 +49,7 @@ export default function ReadLater(props) {
   const [hasMore, setHasMore] = useState(true);
 
   const loadMoreItems = () => {
-    getFeedItems('starred', props.searchQuery, loadedItems.length, 40)
+    getFeedItems(props.id, props.searchQuery, loadedItems.length, props.itemPerPage)
       .then(newLoadedItems => {
         if (newLoadedItems.length === 0) setHasMore(false);
         else setLoadedItems(loadedItems.concat(newLoadedItems));
@@ -84,7 +85,7 @@ export default function ReadLater(props) {
       .then(response => {
         if (response.message) console.log(response.message);
         else {
-          getUnread('starred')
+          getUnread(props.id)
             .then(fetchedUnreadItems => {
               setUnreadItems(fetchedUnreadItems);
             })
@@ -99,7 +100,7 @@ export default function ReadLater(props) {
   }
 
   const handleMarkFeedRead = () => {
-    markFeedRead('starred')
+    markFeedRead(props.id)
       .then(response => {
         setUnreadItems(response);
       })
@@ -111,7 +112,7 @@ export default function ReadLater(props) {
   const handleUnmarkRead = (id) => {
     unmarkRead(id)
       .then(() => {
-        getUnread('starred')
+        getUnread(props.id)
           .then(fetchedUnreadItems => {
             setUnreadItems(fetchedUnreadItems);
           })
@@ -125,19 +126,19 @@ export default function ReadLater(props) {
   }
 
   const handleRefresh = () => {
-    props.setTitle('Read later')
+    props.setTitle(props.title)
     setLoadedItems(null);
     setHasMore(true);
-    getFeed('starred', props.searchQuery)
+    getFeed(props.id, props.searchQuery)
       .then(fetchedFeed => {
         setFeed(fetchedFeed);
-        getUnread('starred')
+        getUnread(props.id)
           .then(fetchedUnreadItems => {
             setUnreadItems(fetchedUnreadItems);
             getStarred()
               .then(fetchedStarredItems => {
                 setStarredItems(fetchedStarredItems);
-                getFeedItems('starred', props.searchQuery, 0, 40)
+                getFeedItems(props.id, props.searchQuery, 0, props.itemPerPage)
                   .then(feedItems => {
                     setLoadedItems(feedItems);
                   })
@@ -160,16 +161,17 @@ export default function ReadLater(props) {
 
   useEffect(() => {
     handleRefresh();
-  }, [props.match.params.id, props.searchQuery])
+  }, [props.title, props.searchQuery])
 
   if (!loadedItems) return <LinearProgress />
+  if (loadedItems.length === 0) return <></>
 
   return (
     <div className={classes.root}>
       <Container component="div" className={classes.feedDetails}>
         <div className={classes.feedHeader}>
           <Typography variant="h4">
-            Read later
+            {props.title}
           </Typography>
           <div className={classes.feedToolbar}>
             {(unreadItems.length) === 0 ?

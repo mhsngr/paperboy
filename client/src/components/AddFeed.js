@@ -19,14 +19,11 @@ import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
 import Popover from '@material-ui/core/Popover';
 import Alert from '@material-ui/lab/Alert';
+import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   appBar: {
     position: 'relative',
-  },
-  title: {
-    marginLeft: theme.spacing(2),
-    flex: 1,
   },
   search: {
     position: 'relative',
@@ -76,7 +73,9 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 export default function AddFeed(props) {
+
   const classes = useStyles();
+
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [feeds, setFeeds] = useState(null);
@@ -85,6 +84,7 @@ export default function AddFeed(props) {
   const [message, setMessage] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const searchRef = React.useRef();
+  let history = useHistory();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -119,9 +119,9 @@ export default function AddFeed(props) {
         else {
           setMessage('');
           setAnchorEl(null);
-          props.setFeeds(null);
           setOpen(false);
-          props.updateFeeds();
+          props.updateUserFeeds();
+          history.push(`/${response._id}`);
         }
       })
       .catch(err => {
@@ -142,7 +142,6 @@ export default function AddFeed(props) {
           <IconButton
             edge="start"
             color="inherit"
-            aria-label="add new feed"
           >
             <AddIcon/>
           </IconButton>
@@ -151,6 +150,7 @@ export default function AddFeed(props) {
       </ListItem>
     </Tooltip>
   )
+
   return (
     <div>
       <Tooltip title="Add new feed" placement="right">
@@ -159,7 +159,6 @@ export default function AddFeed(props) {
             <IconButton
               edge="start"
               color="inherit"
-              aria-label="add new feed"
             >
               <AddIcon/>
             </IconButton>
@@ -170,7 +169,7 @@ export default function AddFeed(props) {
       <Dialog fullScreen open={open} onClose={handleClose} TransitionComponent={Transition}>
         <AppBar className={classes.appBar}>
           <Toolbar>
-            <IconButton edge="start" color="inherit" onClick={handleClose} aria-label="close">
+            <IconButton edge="start" color="inherit" onClick={handleClose}>
               <CloseIcon />
             </IconButton>
             <div className={classes.search} ref={searchRef}>
@@ -183,15 +182,22 @@ export default function AddFeed(props) {
                   root: classes.inputRoot,
                   input: classes.inputInput,
                 }}
-                inputProps={{ 'aria-label': 'search' }}
+                // inputProps={{ 'aria-label': 'search' }}
                 value={feedUrl}
                 onChange={search}
                 fullWidth
+                autofocus
               />
             </div>
-            <IconButton autoFocus color="inherit" onClick={handleAddFeed}>
+            {loading ? 
+            <IconButton disabled color="inherit" onClick={handleAddFeed}>
               <AddIcon/>
             </IconButton>
+            :
+            <IconButton color="inherit" onClick={handleAddFeed}>
+              <AddIcon/>
+            </IconButton>
+            }
             <Popover
               id='error-popover'
               open={!!message}
