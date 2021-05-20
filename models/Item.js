@@ -10,7 +10,7 @@ const itemSchema = new Schema({
   //   url: String,
   //   length: String
   // },
-  categories: [ String ],
+  // categories: [ String ],
   comments: String,
   'content:encoded': String,
   content: String,

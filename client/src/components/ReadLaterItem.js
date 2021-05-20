@@ -177,10 +177,10 @@ export default function FeedItem(props) {
           (
             <Typography variant="subtitle2" paragraph>{props.item.feed.title} by {props.item.author || props.item.creator}, {new Date(props.item.isoDate).toLocaleString()} {props.unread ?  '' : <Link href='#' color='textSecondary' onClick={() => props.handleUnmarkRead(props.item._id)}>mark unread</Link> }</Typography>
           ) : <Typography variant="subtitle2" paragraph>{props.item.feed.title}, {new Date(props.item.isoDate).toLocaleString()} {props.unread ?  '' : <Link href='#' color='textSecondary' onClick={() => props.handleUnmarkRead(props.item._id)}>mark unread</Link> }</Typography>}
-          {props.item.categories.length > 0 ? 
+          {/* {props.item.categories.length > 0 ? 
           (
             <Typography variant="subtitle2" paragraph>Category: {props.item.categories.join(', ')}</Typography>
-          ) : <></>}
+          ) : <></>} */}
           <ButtonGroup className={classes.toolbar}>
             <Tooltip title="Read later">
               {props.starred ?
